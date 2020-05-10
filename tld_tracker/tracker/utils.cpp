@@ -5,3 +5,7 @@ std::ostream& operator<<(std::ostream &os, const cv::Rect& rect) {
        << rect.width << " " << rect.height << std::endl;
     return os;
 }
+
+double TLD::get_normalized_random() {
+    return static_cast<double>(rand()) / RAND_MAX;
+}

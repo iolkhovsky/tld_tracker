@@ -2,8 +2,12 @@
 
 namespace TLD {
 
-void ObjectDetector::SetFrame(cv::Mat& img) {
+ObjectDetector::ObjectDetector() {
 
+}
+
+void ObjectDetector::SetFrame(std::shared_ptr<cv::Mat> img) {
+    _frame_ptr = img;
 }
 
 void ObjectDetector::SetTarget(cv::Rect strobe) {

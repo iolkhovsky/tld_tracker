@@ -10,7 +10,7 @@ Candidate TldTracker::SetFrame(const cv::Mat& input_frame) {
     _src_frame = input_frame.clone();
     cv::GaussianBlur(_src_frame, _lf_frame, cv::Size(7,7), 7);
 
-    _detector.SetFrame(_lf_frame);
+    _detector.SetFrame(std::make_shared<cv::Mat>(_lf_frame));
     _tracker.SetFrame(_src_frame);
     _model.SetFrame(_src_frame);
 

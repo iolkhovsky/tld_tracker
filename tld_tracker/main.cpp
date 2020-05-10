@@ -21,6 +21,11 @@ using namespace cv;
 
 int main(int argc, char** argv) {
 
+    cout << "System arguments have been received: " << endl;
+    for (int i = 0; i < argc; i++) {
+        cout << "#" << i << ": " << argv[i] << endl;
+    }
+
     Settings s;
     TldTracker tracker(s);
 
@@ -35,7 +40,7 @@ int main(int argc, char** argv) {
     Rect target, current;
     Candidate state;
     while(cap.isOpened()) {
-        LOG_DURATION("Processing");
+        LOG_DURATION("Processing")
 
         cap >> src_frame;
         resize(src_frame, frame, Size(640, 480));
@@ -48,7 +53,7 @@ int main(int argc, char** argv) {
         imshow("Stream", frame);
 
         // quit on x button
-        char in_symbol = waitKey(1);
+        auto in_symbol = waitKey(1);
         if  (in_symbol == 'q')
             break;
         else if (in_symbol == 't') {
