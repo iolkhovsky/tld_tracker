@@ -20,7 +20,7 @@ namespace TLD {
         }
     }
 
-    std::vector<AbsFernPair> Fern::Transform(cv::Size base_bbox_size) {
+    std::vector<AbsFernPair> Fern::Transform(cv::Size base_bbox_size) const {
         std::vector<AbsFernPair> out;
         auto img_w = base_bbox_size.width;
         auto img_h = base_bbox_size.height;

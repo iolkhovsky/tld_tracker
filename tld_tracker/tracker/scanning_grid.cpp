@@ -45,7 +45,7 @@ namespace TLD {
         }
     }
 
-    std::vector<cv::Size> ScanningGrid::GetPositionsCnt() {
+    std::vector<cv::Size> ScanningGrid::GetPositionsCnt() const {
         std::vector<cv::Size> out;
 
         for (auto scale: _scales) {
@@ -67,7 +67,7 @@ namespace TLD {
         return out;
     }
 
-    std::vector<PixelIdPair> ScanningGrid::GetPixelPairs(cv::Size position, size_t scale_idx) {
+    std::vector<PixelIdPair> ScanningGrid::GetPixelPairs(cv::Size position, size_t scale_idx) const {
         std::vector<PixelIdPair> base = _zero_shifted[scale_idx];
         auto scale = _scales[scale_idx];
         cv::Size scaled_bbox(static_cast<int>(_base_bbox.width * scale),
@@ -85,6 +85,21 @@ namespace TLD {
         }
 
         return base;
+    }
+
+    std::vector<PixelIdPair> ScanningGrid::GetPixelPairs(cv::Rect bbox) const {
+        std::vector<PixelIdPair> out;
+
+        cv::Size rect_size(bbox.width, bbox.height);
+        std::vector<AbsFernPair> local_coords = _fern.Transform(rect_size);
+
+        for (auto& [p1, p2]: local_coords) {
+            auto p1_offset = (p1.x + bbox.x) + (p1.y + bbox.y) * _frame_size.width;
+            auto p2_offset = (p2.x + bbox.x) + (p2.y + bbox.y) * _frame_size.width;
+            out.push_back({p1_offset, p2_offset});
+        }
+
+        return out;
     }
 
 }

@@ -16,7 +16,7 @@ namespace TLD {
         template<typename It>
         Fern(It begin, It end);
 
-        std::vector<AbsFernPair> Transform(cv::Size base_bbox_size);
+        std::vector<AbsFernPair> Transform(cv::Size base_bbox_size) const;
 
     private:
         std::vector<NormFernPair> _pairs;

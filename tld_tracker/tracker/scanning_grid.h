@@ -15,8 +15,9 @@ namespace TLD {
             _fern(10) {
         }
         void SetBase(cv::Size bbox, double overlap, std::vector<double> scales);
-        std::vector<cv::Size> GetPositionsCnt();
-        std::vector<PixelIdPair> GetPixelPairs(cv::Size position, size_t scale_idx);
+        std::vector<cv::Size> GetPositionsCnt() const;
+        std::vector<PixelIdPair> GetPixelPairs(cv::Size position, size_t scale_idx) const;
+        std::vector<PixelIdPair> GetPixelPairs(cv::Rect bbox) const;
 
     private:
         cv::Size _frame_size;

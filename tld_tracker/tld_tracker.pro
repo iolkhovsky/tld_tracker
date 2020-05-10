@@ -18,8 +18,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
-    tracker/feature_extractor.cpp \
     tracker/fern.cpp \
+    tracker/fern_fext.cpp \
     tracker/integrator.cpp \
     tracker/object_detector.cpp \
     tracker/object_model.cpp \
@@ -32,8 +32,8 @@ HEADERS += \
     mainwindow.h \
     profile.h \
     test_runner.h \
-    tracker/feature_extractor.h \
     tracker/fern.h \
+    tracker/fern_fext.h \
     tracker/integrator.h \
     tracker/object_classifier.h \
     tracker/object_detector.h \

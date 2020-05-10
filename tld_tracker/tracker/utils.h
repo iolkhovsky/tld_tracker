@@ -22,5 +22,8 @@ namespace TLD {
     };
 
     double get_normalized_random();
+    cv::Rect get_extended_rect_for_rotation(cv::Rect base_rect, double angle_degrees);
+    cv::Mat get_rotated_subframe(cv::Mat frame, cv::Rect subframe_rect, double angle);
+    void rotate_subframe(cv::Mat& frame, cv::Rect subframe_rect, double angle);
 
 }
