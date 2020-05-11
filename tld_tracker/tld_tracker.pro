@@ -26,12 +26,14 @@ SOURCES += \
     tracker/opt_flow_tracker.cpp \
     tracker/scanning_grid.cpp \
     tracker/tld_tracker.cpp \
-    tracker/utils.cpp
+    tracker/tld_utils.cpp
 
 HEADERS += \
     mainwindow.h \
     profile.h \
     test_runner.h \
+    tracker/augmentator.h \
+    tracker/common.h \
     tracker/fern.h \
     tracker/fern_fext.h \
     tracker/integrator.h \
@@ -41,7 +43,7 @@ HEADERS += \
     tracker/opt_flow_tracker.h \
     tracker/scanning_grid.h \
     tracker/tld_tracker.h \
-    tracker/utils.h
+    tracker/tld_utils.h
 
 FORMS += \
     mainwindow.ui

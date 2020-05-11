@@ -38,12 +38,17 @@ namespace TLD {
 
     BinaryDescriptor FernFeatureExtractor::GetDescriptor(cv::Mat& frame) const {
         BinaryDescriptor desc = 0x0;
+
         unsigned char *frame_data = frame.data;
-        auto pairs = _grid.GetPixelPairs(bbox);
+        const auto& fern = _grid.GetFern();
+
+        std::vector<AbsFernPair> abs_coord_pairs = fern.Transform({frame.cols, frame.rows});
 
         size_t mask = 0x1;
-        for (auto& [p1, p2]: pairs) {
-            if (frame_data[p1] > frame_data[p2])
+        for (auto& [p1, p2]: abs_coord_pairs) {
+            auto p1offset = p1.x + p1.y * frame.cols;
+            auto p2offset = p2.x + p2.y * frame.cols;
+            if (frame_data[p1offset] > frame_data[p2offset])
                 desc |= mask;
             mask = mask << 1;
         }

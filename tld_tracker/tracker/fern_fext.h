@@ -1,12 +1,10 @@
 #pragma once
 
-#include <opencv2/opencv.hpp>
+#include <tracker/common.h>
 
 #include <tracker/scanning_grid.h>
 
 namespace TLD {
-
-    using BinaryDescriptor = uint16_t;
 
     class FernFeatureExtractor {
     public:

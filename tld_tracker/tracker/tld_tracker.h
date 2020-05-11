@@ -2,8 +2,8 @@
 
 #include <tuple>
 #include <vector>
-#include <opencv2/opencv.hpp>
 
+#include <tracker/common.h>
 #include <tracker/opt_flow_tracker.h>
 #include <tracker/object_detector.h>
 #include <tracker/object_model.h>

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <opencv2/opencv.hpp>
-#include <tracker/utils.h>
+#include <tracker/tld_utils.h>
 
 namespace TLD {
 

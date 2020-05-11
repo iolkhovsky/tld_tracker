@@ -102,4 +102,15 @@ namespace TLD {
         return out;
     }
 
+    const Fern& ScanningGrid::GetFern() const {
+        return _fern;
+    }
+
+    cv::Size ScanningGrid::GetOverlap() const {
+        cv::Size out;
+        out.width = static_cast<int>(_overlap * _base_bbox.width);
+        out.height = static_cast<int>(_overlap * _base_bbox.height);
+        return out;
+    }
+
 }

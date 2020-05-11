@@ -1,14 +1,10 @@
 #pragma once
 
-#include <cstdlib>
 #include <vector>
-#include <opencv2/opencv.hpp>
-#include <utility>
+
+#include <tracker/common.h>
 
 namespace TLD {
-
-    using NormFernPair = std::tuple<cv::Point2d, cv::Point2d>;
-    using AbsFernPair = std::tuple<cv::Point2i, cv::Point2i>;
 
     class Fern {
     public:
