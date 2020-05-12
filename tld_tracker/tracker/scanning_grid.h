@@ -2,6 +2,7 @@
 
 #include <tracker/common.h>
 #include <tracker/fern.h>
+#include <tracker/tld_utils.h>
 
 namespace TLD {
 

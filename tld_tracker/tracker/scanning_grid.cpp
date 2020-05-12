@@ -46,25 +46,7 @@ namespace TLD {
     }
 
     std::vector<cv::Size> ScanningGrid::GetPositionsCnt() const {
-        std::vector<cv::Size> out;
-
-        for (auto scale: _scales) {
-            cv::Size grid_size;
-            cv::Size scaled_bbox(static_cast<int>(_base_bbox.width * scale),
-                                 static_cast<int>(_base_bbox.height * scale));
-
-            int scanning_area_x = _frame_size.width - scaled_bbox.width;
-            int scanning_area_y = _frame_size.height - scaled_bbox.height;
-            int step_x = static_cast<int>(scaled_bbox.width * _overlap);
-            int step_y = static_cast<int>(scaled_bbox.width * _overlap);
-
-            grid_size.width = 1 + scanning_area_x / step_x;
-            grid_size.height = 1 + scanning_area_y / step_y;
-
-            out.push_back(grid_size);
-        }
-
-        return out;
+        return get_scan_position_cnt(_frame_size, _base_bbox, _scales, _overlap);
     }
 
     std::vector<PixelIdPair> ScanningGrid::GetPixelPairs(cv::Size position, size_t scale_idx) const {

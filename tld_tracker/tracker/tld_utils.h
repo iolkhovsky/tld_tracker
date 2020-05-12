@@ -33,8 +33,9 @@ namespace TLD {
                                         double scale,
                                         int offset_x,
                                         int offset_y);
-    double iou(cv::Rect a, cv::Rect b);
+    double compute_iou(cv::Rect a, cv::Rect b);
     cv::Point2f get_mean_shift(const std::vector<cv::Point2f> &start, const std::vector<cv::Point2f> &stop);
     void drawCandidate(cv::Mat& frame, Candidate candidate);
+    std::vector<cv::Size> get_scan_position_cnt(cv::Size frame_size, cv::Size box, std::vector<double> scales, double overlap);
 
 }

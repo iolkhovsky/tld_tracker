@@ -24,6 +24,7 @@ namespace TLD {
                                   static_cast<int>(0.5*_overlap * _designation.width)};
         aug_pars.translation_x = {static_cast<int>(-0.5*_overlap * _designation.height), 0,
                                   static_cast<int>(0.5*_overlap * _designation.height)};
+        aug_pars.overlap = _overlap;
         Augmentator aug(*_frame_ptr, _designation, aug_pars);
 
         _train(aug);

@@ -12,8 +12,8 @@ Candidate TldTracker::SetFrame(const cv::Mat& input_frame) {
     cv::GaussianBlur(_src_frame, _lf_frame, cv::Size(7,7), 7);
 
     _detector.SetFrame(std::make_shared<cv::Mat>(_lf_frame));
+    _model.SetFrame(std::make_shared<cv::Mat>(_src_frame));
     _tracker.SetFrame(_src_frame);
-    _model.SetFrame(_src_frame);
 
     if (_processing_en) {
         _detector_proposals = _detector.Detect();

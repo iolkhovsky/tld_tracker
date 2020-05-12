@@ -128,7 +128,7 @@ cv::Mat TLD::subframe_linear_transform(const cv::Mat& frame, cv::Rect strobe, do
     return out;
 }
 
-double TLD::iou(cv::Rect a, cv::Rect b) {
+double TLD::compute_iou(cv::Rect a, cv::Rect b) {
     int intersection_x_min = std::max(a.x, b.x);
     int intersection_y_min = std::max(a.y, b.y);
     int intersection_x_max = std::min(a.x + a.width, b.x + b.width);
@@ -170,6 +170,28 @@ void TLD::drawCandidate(cv::Mat& frame, Candidate candidate) {
     ss << candidate.prob;
     cv::Point2i org(candidate.strobe.x, candidate.strobe.y - 10);
     cv::putText(frame, ss.str().c_str(), org, cv::FONT_HERSHEY_SIMPLEX, 0.5, color, 1);
+}
+
+std::vector<cv::Size> TLD::get_scan_position_cnt(cv::Size frame_size, cv::Size box, std::vector<double> scales, double overlap) {
+    std::vector<cv::Size> out;
+
+    for (auto scale: scales) {
+        cv::Size grid_size;
+        cv::Size scaled_bbox(static_cast<int>(box.width * scale),
+                             static_cast<int>(box.height * scale));
+
+        int scanning_area_x = frame_size.width - scaled_bbox.width;
+        int scanning_area_y = frame_size.height - scaled_bbox.height;
+        int step_x = static_cast<int>(scaled_bbox.width * overlap);
+        int step_y = static_cast<int>(scaled_bbox.width * overlap);
+
+        grid_size.width = 1 + scanning_area_x / step_x;
+        grid_size.height = 1 + scanning_area_y / step_y;
+
+        out.push_back(grid_size);
+    }
+
+    return out;
 }
 
 
