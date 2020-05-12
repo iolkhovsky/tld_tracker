@@ -2,20 +2,20 @@
 
 namespace TLD {
 
-ObjectModel::ObjectModel() {
+    ObjectModel::ObjectModel() {
 
-}
+    }
 
-void ObjectModel::SetFrame(cv::Mat& frame) {
+    void ObjectModel::SetFrame(cv::Mat& frame) {
 
-}
+    }
 
-void ObjectModel::SetTarget(cv::Rect target) {
+    void ObjectModel::SetTarget(cv::Rect target) {
 
-}
+    }
 
-void ObjectModel::Train(Candidate prediction) {
+    void ObjectModel::Train(Candidate prediction) {
 
-}
+    }
 
 }

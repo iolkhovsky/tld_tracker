@@ -1,4 +1,5 @@
 #include <tracker/tld_utils.h>
+#include <sstream>
 
 std::ostream& operator<<(std::ostream &os, const cv::Rect& rect) {
     os << "Rect: " << rect.x << " " << rect.y << " "
@@ -141,6 +142,34 @@ double TLD::iou(cv::Rect a, cv::Rect b) {
                 (intersection_x_max - intersection_x_min);
         return intersection_area / (a.area() + b.area() - intersection_area);
     }
+}
+
+
+cv::Point2f TLD::get_mean_shift(const std::vector<cv::Point2f> &start, const std::vector<cv::Point2f> &stop)
+{
+    cv::Point2f acc(0.0f, 0.0f);
+    for(size_t i = 0; i < start.size(); i++)
+        acc += stop[i] - start[i];
+    acc = acc / double(start.size());
+    return acc;
+}
+
+void TLD::drawCandidate(cv::Mat& frame, Candidate candidate) {
+    cv::Point2i p1(candidate.strobe.x, candidate.strobe.y);
+    cv::Point2i p2(candidate.strobe.x + candidate.strobe.width - 1,
+                   candidate.strobe.y + candidate.strobe.height - 1);
+    cv::Scalar color = CV_RGB(0,0,0);
+    if (candidate.src == ProposalSource::tracker)
+        color = CV_RGB(0,255,0);
+    if (candidate.src == ProposalSource::detector)
+        color = CV_RGB(0,0,255);
+    cv::rectangle(frame, p1, p2, color);
+    std::stringstream ss;
+    ss << "Prob: ";
+    ss.precision(2);
+    ss << candidate.prob;
+    cv::Point2i org(candidate.strobe.x, candidate.strobe.y - 10);
+    cv::putText(frame, ss.str().c_str(), org, cv::FONT_HERSHEY_SIMPLEX, 0.5, color, 1);
 }
 
 

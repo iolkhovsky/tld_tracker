@@ -5,7 +5,6 @@ namespace TLD {
     ObjectDetector::ObjectDetector() {
         _scales = {0.75, 0.875, 1.0, 1.125, 1.25};
         _overlap = 0.1;
-        _reset();
     }
 
     void ObjectDetector::SetFrame(std::shared_ptr<cv::Mat> img) {
@@ -31,7 +30,7 @@ namespace TLD {
     }
 
     std::vector<Candidate> ObjectDetector::Detect() {
-
+        return {};
     }
 
     void ObjectDetector::Train(Candidate prediction) {

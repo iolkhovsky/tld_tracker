@@ -4,6 +4,7 @@ namespace TLD {
 
 TldTracker::TldTracker(Settings settings)
     : _settings(settings), _integrator(_model) {
+    _processing_en = false;
 }
 
 Candidate TldTracker::SetFrame(const cv::Mat& input_frame) {
@@ -22,6 +23,7 @@ Candidate TldTracker::SetFrame(const cv::Mat& input_frame) {
             _detector.Train(_prediction);
             _model.Train(_prediction);
         }
+        _tracker.SetTarget(_prediction.strobe);
     }
     return _prediction;
 }
@@ -36,6 +38,8 @@ void TldTracker::StartTracking(const cv::Rect target) {
 void TldTracker::StopTracking() {
     _processing_en = false;
 }
+
+
 
 void TldTracker::UpdateSettings() {
 

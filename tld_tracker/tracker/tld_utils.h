@@ -34,5 +34,7 @@ namespace TLD {
                                         int offset_x,
                                         int offset_y);
     double iou(cv::Rect a, cv::Rect b);
+    cv::Point2f get_mean_shift(const std::vector<cv::Point2f> &start, const std::vector<cv::Point2f> &stop);
+    void drawCandidate(cv::Mat& frame, Candidate candidate);
 
 }
