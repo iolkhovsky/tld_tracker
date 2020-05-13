@@ -78,6 +78,7 @@ int main(int argc, char** argv) {
 //    pars.scales = {0.5, 1.0, 1.5};
 //    pars.translation_x = {0};
 //    pars.translation_y = {0};
+//    pars.overlap = 0.1;
 
 //    cv::Rect roi(200, 200, 150, 150);
 
@@ -92,10 +93,21 @@ int main(int argc, char** argv) {
 //        int i = 0;
 //        for (auto subframe: augm.SetClass(ObjectClass::Positive)) {
 //            cout << i++ << endl;
-//            stringstream ss;
+//            stringstream ss("p");
 //            ss << i;
 //            imshow(ss.str().c_str(), subframe);
 //        }
+//        waitKey(0);
+//        i = 0;
+//        for (auto subframe: augm.SetClass(ObjectClass::Negative)) {
+//            cout << i++ << endl;
+//            stringstream ss("n");
+//            ss << i;
+//            imshow(ss.str().c_str(), subframe);
+//            if (i > 100)
+//                break;
+//        }
+//        waitKey(0);
 //    }
 
 //    waitKey(0);

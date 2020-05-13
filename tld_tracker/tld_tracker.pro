@@ -18,6 +18,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
+    tracker/augmentator.cpp \
     tracker/fern.cpp \
     tracker/fern_fext.cpp \
     tracker/integrator.cpp \

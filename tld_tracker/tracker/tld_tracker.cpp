@@ -18,6 +18,7 @@ Candidate TldTracker::SetFrame(const cv::Mat& input_frame) {
     if (_processing_en) {
         _detector_proposals = _detector.Detect();
         _tracker_proposal = _tracker.Track();
+        std::cout << "Object model prediction: " << _model.Predict(_tracker_proposal) << std::endl;
         std::tie(_prediction, _training_en) = _integrator.Integrate(_detector_proposals, _tracker_proposal);
         if (_training_en) {
             _detector.Train(_prediction);

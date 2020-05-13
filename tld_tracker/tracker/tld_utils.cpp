@@ -11,6 +11,10 @@ double TLD::get_normalized_random() {
     return static_cast<double>(rand()) / RAND_MAX;
 }
 
+int TLD::get_random_int(int maxint) {
+    return rand() % (maxint + 1);
+}
+
 cv::Rect TLD::get_extended_rect_for_rotation(cv::Rect base_rect, double angle_degrees) {
     auto center_x = base_rect.x + 0.5*base_rect.width;
     auto center_y = base_rect.y + 0.5*base_rect.height;
@@ -192,6 +196,24 @@ std::vector<cv::Size> TLD::get_scan_position_cnt(cv::Size frame_size, cv::Size b
     }
 
     return out;
+}
+
+double TLD::images_correlation(cv::Mat &image_1, cv::Mat &image_2)   {
+    cv::Mat im_float_1;
+    image_1.convertTo(im_float_1, CV_32F);
+    cv::Mat im_float_2;
+    image_2.convertTo(im_float_2, CV_32F);
+
+    int n_pixels = im_float_1.rows * im_float_1.cols;
+
+    cv::Scalar im1_Mean, im1_Std, im2_Mean, im2_Std;
+    cv::meanStdDev(im_float_1, im1_Mean, im1_Std);
+    cv::meanStdDev(im_float_2, im2_Mean, im2_Std);
+
+    double covar = (im_float_1 - im1_Mean).dot(im_float_2 - im2_Mean) / n_pixels;
+    double correl = covar / (im1_Std[0] * im2_Std[0]);
+
+    return correl;
 }
 
 
