@@ -176,6 +176,11 @@ void TLD::drawCandidate(cv::Mat& frame, Candidate candidate) {
     cv::putText(frame, ss.str().c_str(), org, cv::FONT_HERSHEY_SIMPLEX, 0.5, color, 1);
 }
 
+void TLD::drawCandidates(cv::Mat& frame, std::vector<Candidate> candidates) {
+    for (auto& item: candidates)
+        drawCandidate(frame, item);
+}
+
 std::vector<cv::Size> TLD::get_scan_position_cnt(cv::Size frame_size, cv::Size box, std::vector<double> scales, double overlap) {
     std::vector<cv::Size> out;
 

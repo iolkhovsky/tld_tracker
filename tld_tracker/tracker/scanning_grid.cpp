@@ -34,12 +34,15 @@ namespace TLD {
                 auto fern_base = _fern.Transform(scaled_bbox);
 
                 for (auto& [p1, p2]: fern_base) {
+                    std::pair<size_t, size_t> _point_pair;
                     size_t offset0 = static_cast<size_t>(p1.x + p1.y * _frame_size.width);
                     size_t offset1 = static_cast<size_t>(p2.x + p2.y * _frame_size.width);
-                    scale_points.push_back({offset0, offset1});
+                    _point_pair.first = offset0;
+                    _point_pair.second = offset1;
+                    scale_points.push_back(std::move(_point_pair));
                 }
 
-                _zero_shifted.push_back(scale_points);
+                _zero_shifted.push_back(std::move(scale_points));
             } else
                 throw std::runtime_error(LARGE_SCALE_ERROR);
         }
@@ -50,6 +53,8 @@ namespace TLD {
     }
 
     std::vector<PixelIdPair> ScanningGrid::GetPixelPairs(cv::Size position, size_t scale_idx) const {
+        if (_zero_shifted.size() == 0)
+            throw std::runtime_error("Reference grid is ampty!");
         std::vector<PixelIdPair> base = _zero_shifted[scale_idx];
         auto scale = _scales[scale_idx];
         cv::Size scaled_bbox(static_cast<int>(_base_bbox.width * scale),

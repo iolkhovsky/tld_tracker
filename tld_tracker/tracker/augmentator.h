@@ -11,6 +11,8 @@ namespace TLD {
         std::vector<int> translation_x;
         std::vector<int> translation_y;
         double overlap;
+        double disp_threshold;
+        size_t max_sample_length;
     };
 
     enum class ObjectClass {
@@ -33,7 +35,6 @@ namespace TLD {
         cv::Rect _target;
         TranformPars _pars;
         double _target_stddev;
-        double _disp_threshold;
         std::vector<cv::Mat> _sample;
     };
 

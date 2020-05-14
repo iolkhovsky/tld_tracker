@@ -18,6 +18,7 @@ namespace TLD {
         void SetTarget(cv::Rect strobe);
         void Train(Candidate prediction);
         std::vector<Candidate> Detect();
+        double _ensamble_prediction(cv::Mat img);
     private:
         std::shared_ptr<cv::Mat> _frame_ptr;
         cv::Size _frame_size;
@@ -27,10 +28,11 @@ namespace TLD {
         cv::Rect _designation;
         std::vector<double> _scales;
         double _overlap;
+        double _saturation_limit;
 
         void _reset();
-        void _train(cv::Rect roi);
         void _train(Augmentator aug);
+        void _init_train(Augmentator aug);
     };
 
 }

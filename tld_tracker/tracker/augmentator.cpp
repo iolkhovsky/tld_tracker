@@ -3,7 +3,7 @@
 namespace TLD {
 
     Augmentator::Augmentator(const cv::Mat& frame, cv::Rect target, TranformPars pars) :
-        _frame(frame), _target(target), _pars(pars), _disp_threshold(0.5) {
+        _frame(frame), _target(target), _pars(pars) {
     }
 
     Augmentator& Augmentator::SetClass(ObjectClass name) {
@@ -21,12 +21,26 @@ namespace TLD {
     void Augmentator::_make_positive_sample() {
         _sample.clear();
 
-        for (auto angle: _pars.angles)
-            for (auto scale: _pars.scales)
-                for (auto transl_x: _pars.translation_x)
-                    for (auto transl_y: _pars.translation_y)
+        size_t samples_count = 0;
+        for (auto angle: _pars.angles) {
+            for (auto scale: _pars.scales) {
+                for (auto transl_x: _pars.translation_x) {
+                    for (auto transl_y: _pars.translation_y) {
                         _sample.push_back(subframe_linear_transform(_frame, _target, angle, scale,
                                                                     transl_x, transl_y));
+                        samples_count++;
+                        if (samples_count >= _pars.max_sample_length)
+                            break;
+                    }
+                    if (samples_count >= _pars.max_sample_length)
+                        break;
+                }
+                if (samples_count >= _pars.max_sample_length)
+                    break;
+            }
+            if (samples_count >= _pars.max_sample_length)
+                break;
+        }
     }
 
     void Augmentator::_make_negative_sample() {
@@ -34,6 +48,7 @@ namespace TLD {
         auto target_stddev = _update_target_stddev();
         auto scan_positions = get_scan_position_cnt(_frame.size(), {_target.width, _target.height},
                                                     _pars.scales, _pars.overlap);
+        size_t samples_count = 0;
         for (size_t scale_id = 0; scale_id < _pars.scales.size(); scale_id++) {
             cv::Rect current_rect = {0, 0, static_cast<int>(_target.width * _pars.scales.at(scale_id)),
                                      static_cast<int>(_target.height * _pars.scales.at(scale_id))};
@@ -48,10 +63,18 @@ namespace TLD {
                     cv::Mat variance, mean;
                     cv::meanStdDev(_frame(current_rect), mean, variance);
                     double stddev = variance.at<double>(0,0);
-                    if ((iou < 0.1) && (stddev > target_stddev * _disp_threshold))
+                    if ((iou < 0.1) && (stddev > target_stddev * _pars.disp_threshold)) {
                         _sample.push_back(_frame(current_rect).clone());
+                        samples_count++;
+                    }
+                    if (samples_count >= _pars.max_sample_length)
+                        break;
                 }
+                if (samples_count >= _pars.max_sample_length)
+                    break;
             }
+            if (samples_count >= _pars.max_sample_length)
+                break;
         }
     }
 

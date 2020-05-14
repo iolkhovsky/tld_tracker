@@ -26,6 +26,8 @@ namespace TLD {
         aug_pars.translation_y = {static_cast<int>(-0.5*_overlap * _target.height), 0,
                                   static_cast<int>(0.5*_overlap * _target.height)};
         aug_pars.overlap = _overlap;
+        aug_pars.disp_threshold = 0.5;
+        aug_pars.max_sample_length = 100;
         Augmentator aug(frame, _target, aug_pars);
 
         for (auto subframe: aug.SetClass(ObjectClass::Positive)) {
@@ -50,55 +52,23 @@ namespace TLD {
         aug_pars.translation_x = {static_cast<int>(-0.5*_overlap * _target.height), 0,
                                   static_cast<int>(0.5*_overlap * _target.height)};
         aug_pars.overlap = _overlap;
-        Augmentator aug(frame, _target, aug_pars);
+        aug_pars.disp_threshold = 0.5;
+        aug_pars.max_sample_length = 100;
+        Augmentator aug(frame, candidate.strobe, aug_pars);
 
         for (auto subframe: aug.SetClass(ObjectClass::Positive)) {
             cv::Mat patch = _make_patch(subframe);
-            _add_new_patch(std::move(patch), _positive_sample);
+            double prob = _predict(patch);
+            if (prob < 0.65)
+                _add_new_patch(std::move(patch), _positive_sample);
         }
 
         for (auto subframe: aug.SetClass(ObjectClass::Negative)) {
             cv::Mat patch = _make_patch(subframe);
-            _add_new_patch(std::move(patch), _negative_sample);
+            double prob = _predict(patch);
+            if (prob > 0.5)
+                _add_new_patch(std::move(patch), _negative_sample);
         }
-
-
-        ///////////////////////////////////////////
-        /*float cval = validate_subframe_const(strobe);
-        if (cval< 0.5)//0.65)
-        {
-            add_positive_example(strobe,0.0,false); //const
-        }
-        else
-        {
-            cval = validate_subframe_temp(strobe);
-            if (cval< validator_learning_pos_thresh)//0.65)
-            {
-                add_positive_example(strobe,0.0,true); //temp
-            }
-        }
-
-        k = 0;
-        for (j = 0; j <= stop_y; j = j + step_y)
-            for (i = 0; i<=stop_x; i = i + step_x)
-            {
-                cst.set(i,j,i + szx - 1,j + szy - 1);
-                disp = subframe_disp(cst);
-                over = overlap(cst,strobe);
-                cval = validate_subframe(cst);
-                if ((over<=0.1)&&(disp>=target_init_disp*0.25)&&(cval > 0.5))
-                {
-                    add_negative_example(cst,false);
-                    k++;
-                }
-                if (k>=24)
-                {
-                   j = src_img_height;
-                   i = src_img_width;
-                }
-            }*/
-        //////////////////////////////////////////
-
     }
 
     double ObjectModel::Predict(Candidate candidate) {

@@ -25,9 +25,9 @@ namespace TLD {
         auto img_w = base_bbox_size.width;
         auto img_h = base_bbox_size.height;
         for (auto &[p1, p2]: _pairs) {
-            auto abs_pair = std::make_pair<cv::Point2i, cv::Point2i>(
-                {static_cast<int>(p1.x * img_w), static_cast<int>(p1.y * img_h)},
-                {static_cast<int>(p2.x * img_w), static_cast<int>(p2.y * img_h)});
+            std::pair<cv::Point2i, cv::Point2i> abs_pair;
+            abs_pair.first = {static_cast<int>(p1.x * img_w), static_cast<int>(p1.y * img_h)};
+            abs_pair.second = {static_cast<int>(p2.x * img_w), static_cast<int>(p2.y * img_h)};
             out.emplace_back(std::move(abs_pair));
         }
         return out;

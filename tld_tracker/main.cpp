@@ -53,6 +53,7 @@ int main(int argc, char** argv) {
         TLD::Candidate _track_proposals;
         std::tie(_det_proposals, _track_proposals) = tracker.GetProposals();
         TLD::drawCandidate(frame, _track_proposals);
+        TLD::drawCandidates(frame, _det_proposals);
 
         imshow("Stream", frame);
 

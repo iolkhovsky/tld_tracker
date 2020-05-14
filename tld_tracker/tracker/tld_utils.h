@@ -36,6 +36,7 @@ namespace TLD {
     double compute_iou(cv::Rect a, cv::Rect b);
     cv::Point2f get_mean_shift(const std::vector<cv::Point2f> &start, const std::vector<cv::Point2f> &stop);
     void drawCandidate(cv::Mat& frame, Candidate candidate);
+    void drawCandidates(cv::Mat& frame, std::vector<Candidate> candidates);
     std::vector<cv::Size> get_scan_position_cnt(cv::Size frame_size, cv::Size box, std::vector<double> scales, double overlap);
     int get_random_int(int maxint);
     double images_correlation(cv::Mat &image_1, cv::Mat &image_2);
