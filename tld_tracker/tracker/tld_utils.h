@@ -68,7 +68,6 @@ namespace TLD {
         double prob;
         double aux_prob;
         bool valid;
-        bool training;
         ProposalSource src;
 
         bool operator<(const Candidate& other) const;

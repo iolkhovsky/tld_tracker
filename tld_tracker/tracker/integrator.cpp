@@ -6,9 +6,9 @@ namespace TLD {
         : _model(model) {
     }
 
-    std::tuple<Candidate, bool> Integrator::Integrate(std::vector<Candidate> det_proposals,
-                                    Candidate tracker_proposal) {
-        _detector_proposal_clusters = clusterize_candidates(det_proposals, _settings.clusterization_iou_threshold);
+    void Integrator::_preprocess_candidates() {
+        _detector_proposal_clusters = clusterize_candidates(_detector_raw_proposals, _settings.clusterization_iou_threshold);
+
         auto validate_by_model = [this] (Candidate& item) {
             item.aux_prob = _model.Predict(item);
             return item.aux_prob < _settings.model_prob_threshold;
@@ -19,125 +19,39 @@ namespace TLD {
         std::sort(_detector_proposal_clusters.begin(), _detector_proposal_clusters.end(), [] (const Candidate& lhs, const Candidate& rhs) {
             return lhs.aux_prob > rhs.aux_prob;
         });
-        tracker_proposal.aux_prob = _model.Predict(tracker_proposal);
 
+        std::copy_if(_detector_proposal_clusters.begin(), _detector_proposal_clusters.end(),
+                     std::back_inserter(_dc_more_confident_than_tracker), [this] (const Candidate& c) {
+            return c.aux_prob > _tracker_raw_proposal.aux_prob;
+        });
 
-        if ((tracker_proposal.aux_prob > _settings.model_prob_threshold)
-                && (tracker_proposal.prob > _settings.tracker_prob_threshold)) {
-            // tracker's result is stable
+        std::copy_if(_dc_more_confident_than_tracker.begin(), _dc_more_confident_than_tracker.end(),
+                     std::back_inserter(_dc_close_to_tracker), [this] (const Candidate& c) {
+            return compute_iou(c.strobe, _tracker_raw_proposal.strobe) > 0.75;
+        });
 
-            if (_detector_proposal_clusters.empty()) {
-                // no detector's proposals
-                if (tracker_proposal.aux_prob > 0.4) {
-                    _result.strobe = tracker_proposal.strobe;
-                    _result.src = ProposalSource::tracker;
-                    _result.valid = true;
-                    _result.prob = tracker_proposal.aux_prob;
-                    _result.training = false;
-                    _status_message = "Tracker's one unstable strobe";
-                    if (tracker_proposal.aux_prob > 0.65) {
-                       _result.training = true;
-                       _status_message = "Tracker's one stable strobe";
-                    }
-                }
-            } else {
-                std::vector<Candidate> clusters_better_than_tracker;
-                std::vector<Candidate> close_clusters_better_than_tracker;
-                std::copy_if(_detector_proposal_clusters.begin(), _detector_proposal_clusters.end(),
-                             std::back_inserter(clusters_better_than_tracker), [tracker_proposal] (const Candidate& c) {
-                    return c.aux_prob > tracker_proposal.aux_prob;
-                });
-                std::copy_if(clusters_better_than_tracker.begin(), clusters_better_than_tracker.end(),
-                             std::back_inserter(close_clusters_better_than_tracker), [tracker_proposal] (const Candidate& c) {
-                    return compute_iou(c.strobe, tracker_proposal.strobe) > 0.75;
-                });
+        _tracker_raw_proposal.aux_prob = _model.Predict(_tracker_raw_proposal);
+    }
 
+    std::tuple<Candidate, bool, bool> Integrator::_get_integration_result() const {
+        return std::make_tuple(_final_proposal, _training_enable, _tracker_relocation_enable);
+    }
 
-                if (clusters_better_than_tracker.empty()) {
-                    _result.strobe = tracker_proposal.strobe;
-                    _result.src = ProposalSource::tracker;
-                    _result.valid = true;
-                    _result.prob = tracker_proposal.aux_prob;
-                    _result.training = false;
-                    _status_message = "Tracker's one unstable strobe";
-                    if (tracker_proposal.aux_prob > 0.65) {
-                       _result.training = true;
-                       _status_message = "Tracker's one stable strobe";
-                    }
-                } else if (clusters_better_than_tracker.empty()==1) {
-                    double iou = compute_iou(clusters_better_than_tracker.back().strobe, tracker_proposal.strobe);
-                    if (iou < 0.75) {
-                        _result.strobe = clusters_better_than_tracker.back().strobe;
-                        _result.src = ProposalSource::detector;
-                        _result.valid = true;
-                        _result.prob = clusters_better_than_tracker.back().aux_prob;
-                        _result.training = false;
-                        _status_message = "Detector's one cluster";
-                    } else {
-                        _result.strobe = clusters_better_than_tracker.back().strobe;
-                        _result.src = ProposalSource::mixed;
-                        _result.valid = true;
-                        _result.prob = clusters_better_than_tracker.back().aux_prob;
-                        _result.training = true;
-                        _status_message = "Detector & Tracker one common proposal";
-                    }
-                } else {
-                    if (close_clusters_better_than_tracker.empty()) {
-                        _result.strobe = tracker_proposal.strobe;
-                        _result.src = ProposalSource::mixed;
-                        _result.valid = false;
-                        _result.prob = 0.0;
-                        _result.training = false;
-                        _status_message = "All good clusters to far from tracker";
-                    } else {
-                        // average strobe
-                        std::vector<Candidate> all(close_clusters_better_than_tracker.begin(),
-                                                   close_clusters_better_than_tracker.end());
-                        all.push_back(tracker_proposal);
-                        _result = aggregate_candidates(all);
-                        _result.prob = _result.aux_prob;
-                        _result.src = ProposalSource::mixed;
-                        _result.valid = true;
-                        _result.training = true;
-                        _status_message = "Tracker & Detector with few clusters";
-                    }
-                }
-            }
-        } else {
-            if (_detector_proposal_clusters.empty()) {
-                _result.src = ProposalSource::mixed;
-                _result.prob = 0.0;
-                _result.valid = false;
-                _result.training = false;
-                _status_message = "Unstable Tracker and Detector";
-            } else if (_detector_proposal_clusters.size()==1) {
-                bool stable = (_detector_proposal_clusters.back().prob > 0.8)
-                        && (_detector_proposal_clusters.back().aux_prob > 0.75);
-                _result.strobe = _detector_proposal_clusters.back().strobe;
-                _result.src = ProposalSource::detector;
-                _result.prob = _detector_proposal_clusters.back().aux_prob;
-                _result.valid = true;
-                _result.training = stable;
-                _status_message = "Detector one stable clusters";
-            } else {
-                //2.2.1. Если валидность кластера с макс. значением очень высокая
-                if (_detector_proposal_clusters.front().aux_prob > 0.95) {
-                    _result.strobe = _detector_proposal_clusters.front().strobe;
-                    _result.src = ProposalSource::detector;
-                    _result.prob = _detector_proposal_clusters.front().aux_prob;
-                    _result.valid = true;
-                    _result.training = false;
-                    _status_message = "Most prob Detectors result";
-                } else {
-                    _result.src = ProposalSource::mixed;
-                    _result.prob = 0.0;
-                    _result.valid = false;
-                    _result.training = false;
-                    _status_message = "Unstable Tracker and Detector";
-                }
-            }
-        }
-        return {_result, _result.training};
+    std::tuple<Candidate, bool, bool> Integrator::Integrate(std::vector<Candidate> det_proposals,
+                                    Candidate tracker_proposal) {
+        _detector_raw_proposals = det_proposals;
+        _tracker_raw_proposal = tracker_proposal;
+
+        _preprocess_candidates();
+
+        bool tracker_result_is_stable = tracker_proposal.prob > _settings.tracker_prob_threshold;
+        bool tracker_result_confident = _tracker_raw_proposal.aux_prob > _settings.model_prob_threshold;
+
+        if ( tracker_result_is_stable && tracker_result_confident)
+            _subtree_tracker_result_is_reliable();
+        else
+            _subtree_tracker_result_is_not_reliable();
+        return _get_integration_result();
     }
 
    std::vector<Candidate> Integrator::GetClusters() const {
@@ -147,5 +61,139 @@ namespace TLD {
    void Integrator::SetSettings(IntegratorSettings settings) {
        _settings = settings;
    }
+
+   void Integrator::_subtree_detector_clusters_not_reliable() {
+       if (_tracker_raw_proposal.aux_prob > 0.4) {
+           _final_proposal.strobe = _tracker_raw_proposal.strobe;
+           _final_proposal.src = ProposalSource::tracker;
+           _final_proposal.valid = true;
+           _final_proposal.prob = _tracker_raw_proposal.aux_prob;
+           _training_enable = false;
+           _tracker_relocation_enable = false;
+           _status_message = "Only tracker's unreliable result";
+           if (_tracker_raw_proposal.aux_prob > 0.65) {
+              _training_enable = true;
+              _tracker_relocation_enable = false;
+              _status_message = "Only tracker's reliable result";
+           }
+       } else {
+           _final_proposal.src = ProposalSource::mixed;
+           _final_proposal.valid = false;
+           _final_proposal.prob = 0.0;
+           _training_enable = false;
+           _tracker_relocation_enable = false;
+           _status_message = "No reliable proposals";
+       }
+   }
+
+   void Integrator::_subtree_no_more_confident_det_clusters() {
+        _subtree_detector_clusters_not_reliable();
+   }
+
+   void Integrator::_subtree_one_more_confident_det_cluster() {
+        double iou = compute_iou(_dc_more_confident_than_tracker.front().strobe,
+                                 _tracker_raw_proposal.strobe);
+        if (iou < 0.75) {
+            _final_proposal.strobe = _dc_more_confident_than_tracker.front().strobe;
+            _final_proposal.src = ProposalSource::detector;
+            _final_proposal.valid = true;
+            _final_proposal.prob = _dc_more_confident_than_tracker.front().aux_prob;
+            _training_enable = false;
+            _tracker_relocation_enable = _dc_more_confident_than_tracker.front().aux_prob > 0.65;
+            _status_message = "One detectors cluster better than tracker";
+        } else {
+            std::vector<Candidate> all_candidates;
+            all_candidates.push_back(_dc_more_confident_than_tracker.front());
+            all_candidates.push_back(_tracker_raw_proposal);
+            _final_proposal = aggregate_candidates(all_candidates);
+            _final_proposal.src = ProposalSource::mixed;
+            _final_proposal.valid = true;
+            _final_proposal.prob = _final_proposal.aux_prob;
+            _training_enable = true;
+            _tracker_relocation_enable = false;
+            _status_message = "Detector & Tracker are close";
+        }
+   }
+
+   void Integrator::_subtree_few_more_confident_det_clusters() {
+        if (_dc_close_to_tracker.empty()) {
+            _final_proposal.src = ProposalSource::mixed;
+            _final_proposal.valid = false;
+            _final_proposal.prob = 0.0;
+            _training_enable = false;
+            _tracker_relocation_enable = false;
+            _status_message = "Few detectors clusters far from tracker";
+        } else {
+            std::vector<Candidate> all_candidates(_dc_close_to_tracker.begin(),
+                                                  _dc_close_to_tracker.end());
+            all_candidates.push_back(_tracker_raw_proposal);
+            _final_proposal = aggregate_candidates(all_candidates);
+            _final_proposal.src = ProposalSource::mixed;
+            _final_proposal.valid = true;
+            _final_proposal.prob = _final_proposal.aux_prob;
+            _training_enable = true;
+            _tracker_relocation_enable = false;
+            _status_message = "Detector & Tracker are close";
+        }
+   }
+
+   void Integrator::_subtree_tracker_result_is_reliable() {
+       if (_detector_proposal_clusters.empty()) {
+           _subtree_detector_clusters_not_reliable();
+       } else {
+           if (_dc_more_confident_than_tracker.empty()) {
+               _subtree_no_more_confident_det_clusters();
+           } else if (_dc_more_confident_than_tracker.size() == 1)
+               _subtree_one_more_confident_det_cluster();
+           else
+               _subtree_few_more_confident_det_clusters();
+        }
+   }
+
+   void Integrator::_subtree_tracker_result_is_not_reliable() {
+       if (_detector_proposal_clusters.empty()) {
+
+       } else if (_detector_proposal_clusters.size() == 1) {
+
+       } else {
+
+       }
+
+       if (_detector_proposal_clusters.empty()) {
+           _result.src = ProposalSource::mixed;
+           _result.prob = 0.0;
+           _result.valid = false;
+           _result.training = false;
+           _status_message = "Unstable Tracker and Detector";
+       } else if (_detector_proposal_clusters.size()==1) {
+           bool stable = (_detector_proposal_clusters.back().prob > 0.8)
+                   && (_detector_proposal_clusters.back().aux_prob > 0.75);
+           _result.strobe = _detector_proposal_clusters.back().strobe;
+           _result.src = ProposalSource::detector;
+           _result.prob = _detector_proposal_clusters.back().aux_prob;
+           _result.valid = true;
+           _result.training = stable;
+           _status_message = "Detector one stable clusters";
+       } else {
+           //2.2.1. Если валидность кластера с макс. значением очень высокая
+           if (_detector_proposal_clusters.front().aux_prob > 0.95) {
+               _result.strobe = _detector_proposal_clusters.front().strobe;
+               _result.src = ProposalSource::detector;
+               _result.prob = _detector_proposal_clusters.front().aux_prob;
+               _result.valid = true;
+               _result.training = false;
+               _status_message = "Most prob Detectors result";
+           } else {
+               _result.src = ProposalSource::mixed;
+               _result.prob = 0.0;
+               _result.valid = false;
+               _result.training = false;
+               _status_message = "Unstable Tracker and Detector";
+           }
+       }
+
+       return {_result, training_enable};
+   }
+
 
 }
