@@ -45,7 +45,9 @@ namespace TLD {
     };
 
     struct IntegratorSettings {
-
+        double model_prob_threshold = 0.5;
+        double tracker_prob_threshold = 0.5;
+        double clusterization_iou_threshold = 0.5;
     };
 
     struct Settings {
@@ -57,12 +59,14 @@ namespace TLD {
 
     enum class ProposalSource {
         tracker,
-        detector
+        detector,
+        mixed
     };
 
     struct Candidate {
         cv::Rect strobe;
         double prob;
+        double aux_prob;
         bool valid;
         bool training;
         ProposalSource src;
@@ -89,8 +93,9 @@ namespace TLD {
     void drawCandidates(cv::Mat& frame, std::vector<Candidate> candidates);
     std::vector<cv::Size> get_scan_position_cnt(cv::Size frame_size, cv::Size box, std::vector<double> scales, double overlap);
     int get_random_int(int maxint);
-    double images_correlation(cv::Mat &image_1, cv::Mat &image_2);
+    double images_correlation(const cv::Mat &image_1, const cv::Mat &image_2);
     std::vector<Candidate> non_max_suppression(const std::vector<Candidate>& in, double threshold_iou);
     std::vector<TLD::Candidate> clusterize_candidates(const std::vector<Candidate>& in, double threshold_iou);
-
+    Candidate aggregate_candidates(std::vector<Candidate> sample);
+    cv::Rect adjust_rect_to_frame(cv::Rect rect, cv::Size sz);
 }

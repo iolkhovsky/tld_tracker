@@ -71,9 +71,16 @@ namespace TLD {
         }
     }
 
-    double ObjectModel::Predict(Candidate candidate) {
+    double ObjectModel::Predict(Candidate candidate) const {
         const cv::Mat& src_frame = *_frame;
+        //auto adjusted_rect = adjust_rect_to_frame(candidate.strobe, {src_frame.cols, src_frame.rows});
+        //candidate.strobe = adjusted_rect;
         cv::Mat subframe = src_frame(candidate.strobe);
+        auto patch = _make_patch(subframe);
+        return _predict(patch);
+    }
+
+    double ObjectModel::Predict(const cv::Mat& subframe) const {
         auto patch = _make_patch(subframe);
         return _predict(patch);
     }
@@ -89,27 +96,27 @@ namespace TLD {
         }
     }
 
-    cv::Mat ObjectModel::_make_patch(cv::Mat& subframe) {
+    cv::Mat ObjectModel::_make_patch(const cv::Mat& subframe) const {
         cv::Mat patch;
         cv::resize(subframe, patch, _patch_size);
         return patch;
     }
 
-    double ObjectModel::_similarity_coeff(cv::Mat& patch_0, cv::Mat& patch_1) {
+    double ObjectModel::_similarity_coeff(const cv::Mat& patch_0, cv::Mat& patch_1) const {
         double ncc = images_correlation(patch_0, patch_1);
         double res = 0.5*(ncc + 1);
         return res;
     }
 
-    double ObjectModel::_sample_dissimilarity(cv::Mat& patch, std::vector<cv::Mat>& sample) {
+    double ObjectModel::_sample_dissimilarity(cv::Mat& patch, const std::vector<cv::Mat>& sample) const {
         double out = 0.0;
-        for (auto& sample_patch: sample) {
+        for (const auto& sample_patch: sample) {
             out = std::max(_similarity_coeff(sample_patch, patch), out);
         }
         return 1 - out;
     }
 
-    double ObjectModel::_predict(cv::Mat& patch) {
+    double ObjectModel::_predict(cv::Mat& patch) const {
         double out = 0.0;
         double Npm = _sample_dissimilarity(patch, _negative_sample);
         double Ppm = _sample_dissimilarity(patch, _positive_sample);

@@ -83,7 +83,7 @@ namespace TLD {
         cv::Size scaled_bbox(static_cast<int>(_base_bbox.width * scale),
                              static_cast<int>(_base_bbox.height * scale));
         int step_x = static_cast<int>(scaled_bbox.width * _overlap);
-        int step_y = static_cast<int>(scaled_bbox.width * _overlap);
+        int step_y = static_cast<int>(scaled_bbox.height * _overlap);
 
         int x_offset = position.width * step_x;
         int y_offset = position.height * step_y;

@@ -34,9 +34,10 @@ namespace TLD {
 
     std::vector<Candidate> ObjectDetector::Detect() {
         std::vector<Candidate> out;
-        std::vector<cv::Size> positions_per_scale = _scanning_grids.at(0)->GetPositionsCnt();
+        std::vector<cv::Size> positions_per_scale = _scanning_grids.front()->GetPositionsCnt();
         size_t scale_id = 0;
         for (auto positions: positions_per_scale) {
+            double abs_scale = _settings.training_scales.at(scale_id);
             for (auto y_i = 0; y_i < positions.height; y_i++) {
                 for (auto x_i = 0; x_i < positions.width; x_i++) {
                     double ensemble_prob = 0.0;
@@ -49,10 +50,12 @@ namespace TLD {
                         Candidate candidate;
                         candidate.src = ProposalSource::detector;
                         candidate.prob = ensemble_prob;
-                        candidate.strobe.x = x_i * _scanning_grids.front()->GetOverlap().width;
-                        candidate.strobe.y = y_i * _scanning_grids.front()->GetOverlap().width;
-                        candidate.strobe.width = static_cast<int>(_settings.training_scales.at(scale_id) * _designation.width);
-                        candidate.strobe.height = static_cast<int>(_settings.training_scales.at(scale_id) * _designation.height);
+                        candidate.strobe.x = x_i * static_cast<int>(abs_scale *
+                                                                    _scanning_grids.front()->GetOverlap().width);
+                        candidate.strobe.y = y_i * static_cast<int>(abs_scale *
+                                                                    _scanning_grids.front()->GetOverlap().height);
+                        candidate.strobe.width = static_cast<int>(abs_scale * _designation.width);
+                        candidate.strobe.height = static_cast<int>(abs_scale * _designation.height);
                         out.push_back(candidate);
                     }
                 }

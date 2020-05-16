@@ -196,7 +196,7 @@ std::vector<cv::Size> TLD::get_scan_position_cnt(cv::Size frame_size, cv::Size b
         int scanning_area_x = frame_size.width - scaled_bbox.width;
         int scanning_area_y = frame_size.height - scaled_bbox.height;
         int step_x = static_cast<int>(scaled_bbox.width * overlap);
-        int step_y = static_cast<int>(scaled_bbox.width * overlap);
+        int step_y = static_cast<int>(scaled_bbox.height * overlap);
 
         grid_size.width = 1 + scanning_area_x / step_x;
         grid_size.height = 1 + scanning_area_y / step_y;
@@ -207,7 +207,7 @@ std::vector<cv::Size> TLD::get_scan_position_cnt(cv::Size frame_size, cv::Size b
     return out;
 }
 
-double TLD::images_correlation(cv::Mat &image_1, cv::Mat &image_2)   {
+double TLD::images_correlation(const cv::Mat &image_1, const cv::Mat &image_2)   {
     cv::Mat im_float_1;
     image_1.convertTo(im_float_1, CV_32F);
     cv::Mat im_float_2;
@@ -285,26 +285,53 @@ std::vector<TLD::Candidate> TLD::clusterize_candidates(const std::vector<Candida
     }
 
     for (auto& cluster: clusters) {
-        Candidate avg;
-        double x = 0.0;
-        double y = 0.0;
-        double w = 0.0;
-        double h = 0.0;
-        for (auto& example: cluster) {
-            x += example.strobe.x;
-            y += example.strobe.y;
-            w += example.strobe.width;
-            h += example.strobe.height;
-            avg.prob = std::max(avg.prob, example.prob);
-        }
-        avg.strobe.x = static_cast<int>(x / cluster.size());
-        avg.strobe.y = static_cast<int>(y / cluster.size());
-        avg.strobe.width = static_cast<int>(w / cluster.size());
-        avg.strobe.height = static_cast<int>(h / cluster.size());
+        Candidate avg = aggregate_candidates(cluster);
         avg.src = cluster.front().src;
         out.push_back(avg);
     }
 
+    return out;
+}
+
+TLD::Candidate TLD::aggregate_candidates(std::vector<Candidate> sample) {
+    Candidate out;
+    out.prob = 0.0;
+    out.aux_prob = 0.0;
+    double x = 0.0;
+    double y = 0.0;
+    double w = 0.0;
+    double h = 0.0;
+    for (auto& example: sample) {
+        x += example.strobe.x;
+        y += example.strobe.y;
+        w += example.strobe.width;
+        h += example.strobe.height;
+        out.prob = std::max(out.prob, example.prob);
+        out.aux_prob = std::max(out.aux_prob, example.aux_prob);
+    }
+    out.strobe.x = static_cast<int>(x / sample.size());
+    out.strobe.y = static_cast<int>(y / sample.size());
+    out.strobe.width = static_cast<int>(w / sample.size());
+    out.strobe.height = static_cast<int>(h / sample.size());
+    out.src = ProposalSource::mixed;
+    return out;
+}
+
+cv::Rect TLD::adjust_rect_to_frame(cv::Rect rect, cv::Size sz) {
+    cv::Rect out;
+    int x1, y1, x2, y2;
+    x1 = rect.x;
+    y1 = rect.y;
+    x2 = x1 + rect.width;
+    y2 = y1 + rect.height;
+    x1 = std::max(std::min(sz.width-1, x1), 0);
+    y1 = std::max(std::min(sz.height-1, y1), 0);
+    x2 = std::max(std::min(sz.width-1, x2), 0);
+    y2 = std::max(std::min(sz.height-1, y2), 0);
+    out.x = x1;
+    out.y = y1;
+    out.width = x2-x1;
+    out.height = y2-y1;
     return out;
 }
 
