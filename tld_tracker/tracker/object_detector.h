@@ -13,22 +13,21 @@ namespace TLD {
 
     class ObjectDetector {
     public:
-        ObjectDetector();
+        ObjectDetector() = default;
         void SetFrame(std::shared_ptr<cv::Mat> img);
         void SetTarget(cv::Rect strobe);
         void Train(Candidate prediction);
         std::vector<Candidate> Detect();
         double _ensamble_prediction(cv::Mat img);
+        void Config(DetectorSettings settings);
     private:
         std::shared_ptr<cv::Mat> _frame_ptr;
         cv::Size _frame_size;
-        std::vector<ScanningGrid> _scanning_grids;
+        std::vector<std::shared_ptr<ScanningGrid>> _scanning_grids;
         std::vector<FernFeatureExtractor> _feat_extractors;
         std::vector<ObjectClassifier<BinaryDescriptor, BINARY_DESCRIPTOR_CNT>> _classifiers;
         cv::Rect _designation;
-        std::vector<double> _scales;
-        double _overlap;
-        double _saturation_limit;
+        DetectorSettings _settings;
 
         void _reset();
         void _train(Augmentator aug);

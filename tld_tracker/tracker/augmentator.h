@@ -5,21 +5,6 @@
 
 namespace TLD {
 
-    struct TranformPars {
-        std::vector<double> scales;
-        std::vector<double> angles;
-        std::vector<int> translation_x;
-        std::vector<int> translation_y;
-        double overlap;
-        double disp_threshold;
-        size_t max_sample_length;
-    };
-
-    enum class ObjectClass {
-        Positive,
-        Negative
-    };
-
     class Augmentator {
     public:
         Augmentator(const cv::Mat& frame, cv::Rect target, TranformPars pars);

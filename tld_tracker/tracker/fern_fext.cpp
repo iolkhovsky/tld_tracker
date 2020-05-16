@@ -2,14 +2,14 @@
 
 namespace TLD {
 
-    FernFeatureExtractor::FernFeatureExtractor(const ScanningGrid& grid) :
-        _grid(grid) {
+    FernFeatureExtractor::FernFeatureExtractor(std::shared_ptr<ScanningGrid> grid)
+        : _grid(grid) {
     }
 
     BinaryDescriptor FernFeatureExtractor::GetDescriptor(cv::Mat& frame, cv::Size position, size_t scale_id) const {
         BinaryDescriptor desc = 0x0;
         unsigned char *frame_data = frame.data;
-        auto pairs = _grid.GetPixelPairs(position, scale_id);
+        auto pairs = _grid->GetPixelPairs(position, scale_id);
 
         size_t mask = 0x1;
         for (auto& [p1, p2]: pairs) {
@@ -24,7 +24,7 @@ namespace TLD {
     BinaryDescriptor FernFeatureExtractor::GetDescriptor(cv::Mat& frame, cv::Rect bbox) const {
         BinaryDescriptor desc = 0x0;
         unsigned char *frame_data = frame.data;
-        auto pairs = _grid.GetPixelPairs(bbox);
+        auto pairs = _grid->GetPixelPairs(bbox);
 
         size_t mask = 0x1;
         for (auto& [p1, p2]: pairs) {
@@ -40,7 +40,7 @@ namespace TLD {
         BinaryDescriptor desc = 0x0;
 
         unsigned char *frame_data = frame.data;
-        const auto& fern = _grid.GetFern();
+        const auto& fern = _grid->GetFern();
 
         std::vector<AbsFernPair> abs_coord_pairs = fern.Transform({frame.cols, frame.rows});
 

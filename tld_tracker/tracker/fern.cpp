@@ -20,17 +20,25 @@ namespace TLD {
         }
     }
 
+    Fern::Fern(const Fern& other)
+        : _pairs(other._pairs) {
+    }
+
     std::vector<AbsFernPair> Fern::Transform(cv::Size base_bbox_size) const {
         std::vector<AbsFernPair> out;
         auto img_w = base_bbox_size.width;
         auto img_h = base_bbox_size.height;
-        for (auto &[p1, p2]: _pairs) {
+        for (const auto &[p1, p2]: _pairs) {
             std::pair<cv::Point2i, cv::Point2i> abs_pair;
             abs_pair.first = {static_cast<int>(p1.x * img_w), static_cast<int>(p1.y * img_h)};
             abs_pair.second = {static_cast<int>(p2.x * img_w), static_cast<int>(p2.y * img_h)};
             out.emplace_back(std::move(abs_pair));
         }
         return out;
+    }
+
+    size_t Fern::GetPairsCnt() const {
+        return _pairs.size();
     }
 
 }

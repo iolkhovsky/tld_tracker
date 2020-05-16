@@ -7,6 +7,54 @@ std::ostream& operator<<(std::ostream &os, const cv::Rect& rect);
 
 namespace TLD {
 
+    struct TranformPars {
+        std::vector<double> scales;
+        std::vector<double> angles;
+        std::vector<int> translation_x;
+        std::vector<int> translation_y;
+        double overlap;
+        double disp_threshold;
+        size_t max_sample_length;
+    };
+
+    enum class ObjectClass {
+        Positive,
+        Negative
+    };
+
+    struct DetectorSettings {
+        std::vector<double> training_rotation_angles = {-15, 0, 15};
+        std::vector<double> training_scales = {0.75, 0.875, 1.0, 1.125, 1.25};
+        double scanning_overlap = 0.1;
+        double training_iou_threshold = 0.3;
+        double training_init_saturation = 0.4;
+        double stddev_relative_threshold = 0.5;
+        double detection_probability_threshold = 0.6;
+        double training_pos_min_prob = 0.2;
+        double training_pos_max_prob = 0.8;
+        double training_neg_min_prob = 0.2;
+        double training_neg_max_prob = 0.5;
+    };
+
+    struct TrackerSettings {
+
+    };
+
+    struct ModelSettings {
+
+    };
+
+    struct IntegratorSettings {
+
+    };
+
+    struct Settings {
+        DetectorSettings detector;
+        TrackerSettings tracker;
+        ModelSettings model;
+        IntegratorSettings integrator;
+    };
+
     enum class ProposalSource {
         tracker,
         detector

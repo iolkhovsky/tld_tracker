@@ -11,10 +11,6 @@
 
 namespace TLD {
 
-    struct Settings {
-
-    };
-
     class TldTracker {
     public:
         TldTracker(Settings settings);

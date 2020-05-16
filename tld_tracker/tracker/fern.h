@@ -11,7 +11,8 @@ namespace TLD {
         Fern(size_t pairs_cnt);
         template<typename It>
         Fern(It begin, It end);
-
+        Fern(const Fern& other);
+        size_t GetPairsCnt() const;
         std::vector<AbsFernPair> Transform(cv::Size base_bbox_size) const;
 
     private:

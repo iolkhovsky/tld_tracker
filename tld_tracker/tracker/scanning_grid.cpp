@@ -9,6 +9,29 @@ namespace  {
 
 namespace TLD {
 
+    ScanningGrid::ScanningGrid(cv::Size frame_size) :
+        _frame_size(frame_size),
+        _fern(BINARY_DESCRIPTOR_WIDTH) {
+    }
+
+    ScanningGrid::ScanningGrid(const ScanningGrid& other)
+        : _frame_size(other.FetFrameSize()),
+          _fern(other.GetFern()) {
+        _base_bbox=other._base_bbox;
+        _scales = {other._scales.begin(), other._scales.begin()};
+        _overlap = other._overlap;
+        _zero_shifted = {other._zero_shifted.begin(), other._zero_shifted.end()};
+    }
+
+    ScanningGrid::ScanningGrid(ScanningGrid&& other)
+        : _fern(other.GetFern()) {
+        _frame_size = other.FetFrameSize();
+        _base_bbox = std::move(other._base_bbox);
+        _scales = std::move(other._scales);
+        _overlap = other._overlap;
+        _zero_shifted = std::move(other._zero_shifted);
+    }
+
     void ScanningGrid::SetBase(cv::Size bbox, double overlap, std::vector<double> scales) {
         _base_bbox = bbox;
         _scales = scales;
@@ -33,7 +56,7 @@ namespace TLD {
 
                 auto fern_base = _fern.Transform(scaled_bbox);
 
-                for (auto& [p1, p2]: fern_base) {
+                for (const auto& [p1, p2]: fern_base) {
                     std::pair<size_t, size_t> _point_pair;
                     size_t offset0 = static_cast<size_t>(p1.x + p1.y * _frame_size.width);
                     size_t offset1 = static_cast<size_t>(p2.x + p2.y * _frame_size.width);
@@ -98,6 +121,10 @@ namespace TLD {
         out.width = static_cast<int>(_overlap * _base_bbox.width);
         out.height = static_cast<int>(_overlap * _base_bbox.height);
         return out;
+    }
+
+    cv::Size ScanningGrid::FetFrameSize() const {
+        return _frame_size;
     }
 
 }

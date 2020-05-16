@@ -72,6 +72,31 @@ int main(int argc, char** argv) {
     return 0;
 }
 
+
+//int main(int argc, char *argv[])
+//{
+//    vector<FernFeatureExtractor> _feat_extractors;
+//    vector<ScanningGrid> _scanning_grids;
+//    vector<ObjectClassifier<uint16_t, 1024>> _classifiers;
+
+//    cv::Rect _designation(50, 60, 100, 100);
+
+//    _feat_extractors.clear();
+//    _scanning_grids.clear();
+//    _classifiers.clear();
+//    for (auto i = 0; i < 1; i++) {
+//        _scanning_grids.emplace_back(ScanningGrid({640, 480}));
+//        _scanning_grids.back().SetBase({_designation.width, _designation.height}, 0.1, {0.9,1.0,1.1});
+//        _feat_extractors.push_back(_scanning_grids.back());
+//        _classifiers.emplace_back(ObjectClassifier<BinaryDescriptor, BINARY_DESCRIPTOR_CNT>());
+//    }
+
+//    auto i = _classifiers.front().Predict(100);
+//    cout << i << endl;
+//    return 0;
+//}
+
+
 //int main() {
 
 //    TranformPars pars;

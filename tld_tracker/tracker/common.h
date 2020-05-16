@@ -11,7 +11,7 @@
 
 namespace TLD {
     using BinaryDescriptor = uint16_t;
-    using NormFernPair = std::tuple<cv::Point2d, cv::Point2d>;
-    using AbsFernPair = std::tuple<cv::Point2i, cv::Point2i>;
+    using NormFernPair = std::pair<cv::Point2d, cv::Point2d>;
+    using AbsFernPair = std::pair<cv::Point2i, cv::Point2i>;
     using PixelIdPair = std::pair<size_t, size_t>;
 }
