@@ -49,8 +49,8 @@ bool TldTracker::IsProcessing() {
     return _processing_en;
 }
 
-std::tuple<std::vector<Candidate>, Candidate> TldTracker::GetProposals() {
-    return make_tuple(_detector_proposals, _tracker_proposal);
+std::tuple<std::vector<Candidate>, std::vector<Candidate>, Candidate> TldTracker::GetProposals() {
+    return make_tuple(_detector_proposals, _integrator.GetClusters(), _tracker_proposal);
 }
 
 }

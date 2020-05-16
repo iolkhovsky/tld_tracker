@@ -7,6 +7,10 @@ std::ostream& operator<<(std::ostream &os, const cv::Rect& rect) {
     return os;
 }
 
+bool TLD::Candidate::operator<(const Candidate& other) const {
+    return prob < other.prob;
+}
+
 double TLD::get_normalized_random() {
     return static_cast<double>(rand()) / RAND_MAX;
 }
@@ -219,6 +223,89 @@ double TLD::images_correlation(cv::Mat &image_1, cv::Mat &image_2)   {
     double correl = covar / (im1_Std[0] * im2_Std[0]);
 
     return correl;
+}
+
+
+namespace TLD {
+    class CandidateComparator {
+    public:
+        bool operator()(const Candidate& lhs, const Candidate& rhs) {
+            return lhs.prob > rhs.prob;
+        }
+    };
+}
+
+std::vector<TLD::Candidate> TLD::non_max_suppression(const std::vector<Candidate>& in, double threshold_iou) {
+    if (in.empty())
+        return {};
+    std::vector<Candidate> out;
+    std::multiset<Candidate, CandidateComparator> sorted(begin(in), end(in));
+
+    while (sorted.size()) {
+        auto max = *sorted.begin();
+        out.push_back(max);
+        sorted.erase(sorted.begin());
+        auto reference_rect = out.back().strobe;
+        if (sorted.size()) {
+            for (auto it = sorted.begin(); it != sorted.end(); ) {
+                double iou = compute_iou(it->strobe, reference_rect);
+                if (iou > threshold_iou) {
+                    it = sorted.erase(it);
+                } else {
+                    it++;
+                }
+            }
+        }
+    }
+    return out;
+}
+
+std::vector<TLD::Candidate> TLD::clusterize_candidates(const std::vector<Candidate>& in, double threshold_iou) {
+    if (in.empty())
+        return {};
+    std::vector<Candidate> out;
+    std::vector<std::vector<Candidate>> clusters;
+
+    for (const auto &sample: in) {
+        bool match = false;
+        for (auto& cluster: clusters) {
+            match = true;
+            for (auto& item: cluster) {
+                double iou = compute_iou(item.strobe, sample.strobe);
+                if (iou < threshold_iou) {
+                    match = false;
+                    break;
+                }
+            }
+            if (match)
+                cluster.push_back(sample);
+        }
+        if (!match)
+            clusters.push_back({sample});
+    }
+
+    for (auto& cluster: clusters) {
+        Candidate avg;
+        double x = 0.0;
+        double y = 0.0;
+        double w = 0.0;
+        double h = 0.0;
+        for (auto& example: cluster) {
+            x += example.strobe.x;
+            y += example.strobe.y;
+            w += example.strobe.width;
+            h += example.strobe.height;
+            avg.prob = std::max(avg.prob, example.prob);
+        }
+        avg.strobe.x = static_cast<int>(x / cluster.size());
+        avg.strobe.y = static_cast<int>(y / cluster.size());
+        avg.strobe.width = static_cast<int>(w / cluster.size());
+        avg.strobe.height = static_cast<int>(h / cluster.size());
+        avg.src = cluster.front().src;
+        out.push_back(avg);
+    }
+
+    return out;
 }
 
 

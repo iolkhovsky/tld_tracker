@@ -19,7 +19,7 @@ namespace TLD {
         void StopTracking();
         void UpdateSettings();
         bool IsProcessing();
-        std::tuple<std::vector<Candidate>, Candidate> GetProposals();
+        std::tuple<std::vector<Candidate>, std::vector<Candidate>, Candidate> GetProposals();
 
     private:
         Settings _settings;

@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
 
     cv::Mat src_frame, frame, gray;
     Rect target, current;
-    Candidate state;
+    Candidate result;
     while(cap.isOpened()) {
         LOG_DURATION("Processing")
 
@@ -48,14 +48,20 @@ int main(int argc, char** argv) {
             break;
         cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
 
-        state = tracker.SetFrame(gray);
+        result = tracker.SetFrame(gray);
         std::vector<TLD::Candidate> _det_proposals;
-        TLD::Candidate _track_proposals;
-        std::tie(_det_proposals, _track_proposals) = tracker.GetProposals();
-        TLD::drawCandidate(frame, _track_proposals);
-        TLD::drawCandidates(frame, _det_proposals);
+        std::vector<TLD::Candidate> _det_clusters;
+        TLD::Candidate _track_proposal;
+        std::tie(_det_proposals, _det_clusters, _track_proposal) = tracker.GetProposals();
+
+        auto deb_frame = frame.clone();
+
+        TLD::drawCandidate(frame, result);
+        TLD::drawCandidates(deb_frame, _det_clusters);
+        TLD::drawCandidate(deb_frame, _track_proposal);
 
         imshow("Stream", frame);
+        imshow("Debug", deb_frame);
 
         // quit on x button
         auto in_symbol = waitKey(1);

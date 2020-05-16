@@ -66,6 +66,8 @@ namespace TLD {
         bool valid;
         bool training;
         ProposalSource src;
+
+        bool operator<(const Candidate& other) const;
     };
 
     double get_normalized_random();
@@ -88,5 +90,7 @@ namespace TLD {
     std::vector<cv::Size> get_scan_position_cnt(cv::Size frame_size, cv::Size box, std::vector<double> scales, double overlap);
     int get_random_int(int maxint);
     double images_correlation(cv::Mat &image_1, cv::Mat &image_2);
+    std::vector<Candidate> non_max_suppression(const std::vector<Candidate>& in, double threshold_iou);
+    std::vector<TLD::Candidate> clusterize_candidates(const std::vector<Candidate>& in, double threshold_iou);
 
 }

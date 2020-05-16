@@ -10,7 +10,9 @@ namespace TLD {
         Integrator(ObjectModel& model);
         std::tuple<Candidate, bool> Integrate(std::vector<Candidate> det_proposals,
                             Candidate tracker_proposal);
-
+        std::vector<Candidate> GetClusters() const;
+    private:
+        std::vector<Candidate> _detector_proposal_clusters;
     };
 
 }
