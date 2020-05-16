@@ -167,11 +167,20 @@ void TLD::drawCandidate(cv::Mat& frame, Candidate candidate) {
     cv::Point2i p2(candidate.strobe.x + candidate.strobe.width - 1,
                    candidate.strobe.y + candidate.strobe.height - 1);
     cv::Scalar color = CV_RGB(0,0,0);
+    int thickness = 1;
     if (candidate.src == ProposalSource::tracker)
         color = CV_RGB(0,255,0);
     if (candidate.src == ProposalSource::detector)
         color = CV_RGB(0,0,255);
-    cv::rectangle(frame, p1, p2, color);
+    if (candidate.src == ProposalSource::mixed)
+        color = CV_RGB(0,255,255);
+    if (candidate.src == ProposalSource::final) {
+        if (candidate.valid == false)
+            return;
+        color = CV_RGB(255,0,0);
+        thickness = static_cast<int>(4 * candidate.prob);
+    }
+    cv::rectangle(frame, p1, p2, color, thickness);
     std::stringstream ss;
     ss << "Prob: ";
     ss.precision(2);

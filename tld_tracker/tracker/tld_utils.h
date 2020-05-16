@@ -60,7 +60,8 @@ namespace TLD {
     enum class ProposalSource {
         tracker,
         detector,
-        mixed
+        mixed,
+        final
     };
 
     struct Candidate {

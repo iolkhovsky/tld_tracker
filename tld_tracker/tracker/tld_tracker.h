@@ -34,6 +34,7 @@ namespace TLD {
 
         bool _processing_en;
         bool _training_en;
+        bool _tracker_relocate;
         Candidate _prediction;
 
         std::vector<Candidate> _detector_proposals;

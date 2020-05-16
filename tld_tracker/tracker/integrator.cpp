@@ -44,7 +44,7 @@ namespace TLD {
 
         _preprocess_candidates();
 
-        bool tracker_result_is_stable = tracker_proposal.prob > _settings.tracker_prob_threshold;
+        bool tracker_result_is_stable = tracker_proposal.valid;
         bool tracker_result_confident = _tracker_raw_proposal.aux_prob > _settings.model_prob_threshold;
 
         if ( tracker_result_is_stable && tracker_result_confident)
@@ -151,49 +151,40 @@ namespace TLD {
    }
 
    void Integrator::_subtree_tracker_result_is_not_reliable() {
-       if (_detector_proposal_clusters.empty()) {
-
+        if (_detector_proposal_clusters.empty()) {
+            _final_proposal.src = ProposalSource::mixed;
+            _final_proposal.valid = false;
+            _final_proposal.prob = 0.0;
+            _training_enable = false;
+            _tracker_relocation_enable = false;
+            _status_message = "No reliable results";
        } else if (_detector_proposal_clusters.size() == 1) {
-
+            bool detector_stable = ((_detector_proposal_clusters.front().prob > 0.7)
+                                    || (_detector_proposal_clusters.front().aux_prob > 0.8));
+            _final_proposal.strobe = _detector_proposal_clusters.front().strobe;
+            _final_proposal.prob = _detector_proposal_clusters.front().aux_prob;
+            _final_proposal.valid = true;
+            _final_proposal.src = ProposalSource::detector;
+            _training_enable = true;
+            _tracker_relocation_enable = detector_stable;
+            _status_message = "One detector cluster";
        } else {
-
+            if (_detector_proposal_clusters.front().aux_prob > 0.95) {
+                _final_proposal.src = ProposalSource::detector;
+                _final_proposal.valid = true;
+                _final_proposal.prob = _detector_proposal_clusters.front().aux_prob;
+                _training_enable = false;
+                _tracker_relocation_enable = false;
+                _status_message = "Most confident Detector cluster";
+            } else {
+                _final_proposal.src = ProposalSource::mixed;
+                _final_proposal.valid = false;
+                _final_proposal.prob = 0.0;
+                _training_enable = false;
+                _tracker_relocation_enable = false;
+                _status_message = "No reliable results";
+            }
        }
-
-       if (_detector_proposal_clusters.empty()) {
-           _result.src = ProposalSource::mixed;
-           _result.prob = 0.0;
-           _result.valid = false;
-           _result.training = false;
-           _status_message = "Unstable Tracker and Detector";
-       } else if (_detector_proposal_clusters.size()==1) {
-           bool stable = (_detector_proposal_clusters.back().prob > 0.8)
-                   && (_detector_proposal_clusters.back().aux_prob > 0.75);
-           _result.strobe = _detector_proposal_clusters.back().strobe;
-           _result.src = ProposalSource::detector;
-           _result.prob = _detector_proposal_clusters.back().aux_prob;
-           _result.valid = true;
-           _result.training = stable;
-           _status_message = "Detector one stable clusters";
-       } else {
-           //2.2.1. Если валидность кластера с макс. значением очень высокая
-           if (_detector_proposal_clusters.front().aux_prob > 0.95) {
-               _result.strobe = _detector_proposal_clusters.front().strobe;
-               _result.src = ProposalSource::detector;
-               _result.prob = _detector_proposal_clusters.front().aux_prob;
-               _result.valid = true;
-               _result.training = false;
-               _status_message = "Most prob Detectors result";
-           } else {
-               _result.src = ProposalSource::mixed;
-               _result.prob = 0.0;
-               _result.valid = false;
-               _result.training = false;
-               _status_message = "Unstable Tracker and Detector";
-           }
-       }
-
-       return {_result, training_enable};
    }
-
 
 }

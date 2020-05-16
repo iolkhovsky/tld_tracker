@@ -18,13 +18,17 @@ Candidate TldTracker::SetFrame(const cv::Mat& input_frame) {
     if (_processing_en) {
         _detector_proposals = _detector.Detect();
         _tracker_proposal = _tracker.Track();
-        std::tie(_prediction, _training_en) = _integrator.Integrate(_detector_proposals, _tracker_proposal);
+        std::tie(_prediction, _training_en, _tracker_relocate) = _integrator.Integrate(_detector_proposals, _tracker_proposal);
         if (_training_en) {
             _detector.Train(_prediction);
             _model.Train(_prediction);
         }
-        _tracker.SetTarget(_prediction.strobe);
+        if (_tracker_relocate)
+            _tracker.SetTarget(_prediction.strobe);
+        else
+            _tracker.SetTarget(_tracker_proposal.strobe);
     }
+    _prediction.src = ProposalSource::final;
     return _prediction;
 }
 
