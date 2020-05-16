@@ -12,7 +12,6 @@ int main(int argc, char *argv[])
 
 #include <iostream>
 #include <tracker/tld_tracker.h>
-#include <tracker/tld_utils.h>
 #include <profile.h>
 
 using namespace std;
@@ -26,8 +25,7 @@ int main(int argc, char** argv) {
         cout << "#" << i << ": " << argv[i] << endl;
     }
 
-    Settings s;
-    TldTracker tracker(s);
+    TldTracker tracker = make_tld_tracker();
 
     cv::VideoCapture cap;
     cap = VideoCapture(0);
@@ -70,8 +68,9 @@ int main(int argc, char** argv) {
         else if (in_symbol == 't') {
             target = selectROI("Stream", frame);
             tracker.StartTracking(target);
-            cout << "Target: " << target;
         }
+
+        std::cout << tracker;
 
    }
 

@@ -20,11 +20,13 @@ namespace TLD {
             return lhs.aux_prob > rhs.aux_prob;
         });
 
+        _dc_more_confident_than_tracker.clear();
         std::copy_if(_detector_proposal_clusters.begin(), _detector_proposal_clusters.end(),
                      std::back_inserter(_dc_more_confident_than_tracker), [this] (const Candidate& c) {
             return c.aux_prob > _tracker_raw_proposal.aux_prob;
         });
 
+        _dc_close_to_tracker.clear();
         std::copy_if(_dc_more_confident_than_tracker.begin(), _dc_more_confident_than_tracker.end(),
                      std::back_inserter(_dc_close_to_tracker), [this] (const Candidate& c) {
             return compute_iou(c.strobe, _tracker_raw_proposal.strobe) > 0.75;
@@ -111,7 +113,7 @@ namespace TLD {
             _final_proposal.prob = _final_proposal.aux_prob;
             _training_enable = true;
             _tracker_relocation_enable = false;
-            _status_message = "Detector & Tracker are close";
+            _status_message = "One Detector & Tracker are close";
         }
    }
 
@@ -133,7 +135,7 @@ namespace TLD {
             _final_proposal.prob = _final_proposal.aux_prob;
             _training_enable = true;
             _tracker_relocation_enable = false;
-            _status_message = "Detector & Tracker are close";
+            _status_message = "Few Detector & Tracker are close";
         }
    }
 
@@ -185,6 +187,10 @@ namespace TLD {
                 _status_message = "No reliable results";
             }
        }
+   }
+
+   std::string Integrator::GetStatusMessage() const {
+       return _status_message;
    }
 
 }

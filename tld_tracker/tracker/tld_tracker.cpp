@@ -1,6 +1,31 @@
 #include <tracker/tld_tracker.h>
 
+std::ostream& operator<<(std::ostream& os, const TLD::TldTracker& tracker) {
+    os << std::endl;
+    os << "<TLD tracker object>" << std::endl;
+    os << "Processing:\t" << (tracker.GetStatus().processing ? "enable" : "disable") << std::endl;
+    os << "Target:\t" << (tracker.GetStatus().valid_object ? "valid" : "invalid") << std::endl;
+    os << "Training:\t" << (tracker.GetStatus().training ? "enable" : "disable") << std::endl;
+    os << "Relocation:\t" << (tracker.GetStatus().tracker_relocation ? "enable" : "disable") << std::endl;
+    os << "Detector proposals:\t" << tracker.GetStatus().detector_candidates_cnt << std::endl;
+    os << "Detector clusters:\t" << tracker.GetStatus().detector_clusters_cnt << std::endl;
+    os << "Status:\t" << tracker.GetStatus().message << std::endl;
+    os << std::endl;
+    return os;
+}
+
 namespace TLD {
+
+TldTracker make_tld_tracker() {
+    Settings s;
+    TldTracker tracker(s);
+    return tracker;
+}
+
+TldTracker make_tld_tracker(Settings s) {
+    TldTracker tracker(s);
+    return tracker;
+}
 
 TldTracker::TldTracker(Settings settings)
     : _settings(settings), _integrator(_model) {
@@ -55,6 +80,18 @@ bool TldTracker::IsProcessing() {
 
 std::tuple<std::vector<Candidate>, std::vector<Candidate>, Candidate> TldTracker::GetProposals() {
     return make_tuple(_detector_proposals, _integrator.GetClusters(), _tracker_proposal);
+}
+
+TldStatus TldTracker::GetStatus() const {
+    TldStatus out;
+    out.message = _integrator.GetStatusMessage();
+    out.training = _training_en;
+    out.processing = _processing_en;
+    out.valid_object = _prediction.valid;
+    out.tracker_relocation = _tracker_relocate;
+    out.detector_candidates_cnt = _detector_proposals.size();
+    out.detector_clusters_cnt = _integrator.GetClusters().size();
+    return out;
 }
 
 }

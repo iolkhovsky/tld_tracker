@@ -3,8 +3,6 @@
 #include <iostream>
 #include <tracker/common.h>
 
-std::ostream& operator<<(std::ostream &os, const cv::Rect& rect);
-
 namespace TLD {
 
     struct TranformPars {

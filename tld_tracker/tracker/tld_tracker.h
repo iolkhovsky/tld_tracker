@@ -11,6 +11,16 @@
 
 namespace TLD {
 
+    struct TldStatus {
+        bool processing;
+        bool valid_object;
+        bool training;
+        bool tracker_relocation;
+        size_t detector_candidates_cnt;
+        size_t detector_clusters_cnt;
+        std::string message;
+    };
+
     class TldTracker {
     public:
         TldTracker(Settings settings);
@@ -20,6 +30,7 @@ namespace TLD {
         void UpdateSettings();
         bool IsProcessing();
         std::tuple<std::vector<Candidate>, std::vector<Candidate>, Candidate> GetProposals();
+        TldStatus GetStatus() const;
 
     private:
         Settings _settings;
@@ -41,5 +52,9 @@ namespace TLD {
         Candidate _tracker_proposal;
     };
 
+    TldTracker make_tld_tracker();
+    TldTracker make_tld_tracker(Settings s);
+
 }
 
+std::ostream& operator<<(std::ostream &os, const TLD::TldTracker& tracker);
