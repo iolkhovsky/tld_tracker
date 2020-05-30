@@ -21,7 +21,7 @@ namespace TLD {
         aug_pars.neg_sample_size_limit = -1;
         aug_pars.disp_threshold = _settings.stddev_relative_threshold;
         aug_pars.angles = _settings.init_training_rotation_angles;
-        aug_pars.scales = _settings.training_scales;
+        aug_pars.scales = _settings.init_training_scales;
         aug_pars.overlap = _settings.scanning_overlap;
         aug_pars.translation_x = {static_cast<int>(-0.5 * _settings.scanning_overlap * _designation.width), 0,
                                   static_cast<int>(0.5 * _settings.scanning_overlap * _designation.width)};
@@ -84,7 +84,7 @@ namespace TLD {
         _classifiers.clear();
         for (auto i = 0; i < CLASSIFIERS_CNT; i++) {
             _scanning_grids.push_back(std::make_shared<ScanningGrid>(_frame_size));
-            _scanning_grids.back()->SetBase({_designation.width, _designation.height}, 0.1, _settings.training_scales);
+            _scanning_grids.back()->SetBase({_designation.width, _designation.height}, 0.1, _settings.scanning_scales);
             _feat_extractors.push_back(_scanning_grids.back());
             _classifiers.emplace_back(ObjectClassifier<BinaryDescriptor, BINARY_DESCRIPTOR_CNT>());
         }
@@ -93,7 +93,7 @@ namespace TLD {
     void ObjectDetector::UpdateGrid(const Candidate& reference) {
         _designation = reference.strobe;
         for (auto& grid: _scanning_grids)
-            grid->SetBase({_designation.width, _designation.height}, _settings.scanning_overlap, _settings.training_scales);
+            grid->SetBase({_designation.width, _designation.height}, _settings.scanning_overlap, _settings.scanning_scales);
     }
 
     void ObjectDetector::_train(Augmentator aug) {

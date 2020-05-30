@@ -12,7 +12,9 @@ namespace TLD {
         void SetTarget(cv::Rect strobe);
         Candidate Track();
     private:
-        cv::Rect _target;
+        cv::Rect2d _target;
+        cv::Point2d _center;
+        cv::Size2d _size;
         cv::Mat _current_frame;
         cv::Mat _prev_frame;
         std::vector<cv::Point2f> _prev_points;

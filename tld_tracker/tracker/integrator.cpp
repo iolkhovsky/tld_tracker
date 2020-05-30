@@ -73,7 +73,7 @@ namespace TLD {
            _training_enable = false;
            _tracker_relocation_enable = false;
            _status_message = "Only tracker's unreliable result";
-           if (_tracker_raw_proposal.aux_prob > 0.65) {
+           if (_tracker_raw_proposal.aux_prob > 0.7) {
               _training_enable = true;
               _tracker_relocation_enable = false;
               _status_message = "Only tracker's reliable result";

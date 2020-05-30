@@ -162,24 +162,19 @@ cv::Point2f TLD::get_mean_shift(const std::vector<cv::Point2f> &start, const std
     return acc;
 }
 
-cv::Point2f TLD::get_scale(const std::vector<cv::Point2f> &start, const std::vector<cv::Point2f> &stop) {
-    std::vector<double> dist_prev;
-    std::vector<double> dist_cur;
+double TLD::get_scale(const std::vector<cv::Point2f> &start, const std::vector<cv::Point2f> &stop) {
+    std::vector<double> scale_sample;
 
     for (size_t i = 0; i < start.size(); i++) {
         for (size_t j = i + 1; j < start.size(); j++) {
-            dist_prev.push_back(cv::norm(start[i] - start[j]));
-            dist_cur.push_back(cv::norm(stop[i] - stop[j]));
-
+            double sq_dist_prev = std::pow(cv::norm(start[i] - start[j]),2);
+            double sq_dist_cur = std::pow(cv::norm(stop[i] - stop[j]),2);
+            scale_sample.push_back(std::sqrt(sq_dist_cur/sq_dist_prev));
         }
     }
 
-    std::sort(dist_prev.begin(), dist_prev.end());
-    std::sort(dist_cur.begin(), dist_cur.end());
-
-    float scale = static_cast<float>(dist_cur[dist_cur.size() / 2] /
-            dist_prev[dist_prev.size() / 2]);
-    return {scale, scale};
+    std::sort(scale_sample.begin(), scale_sample.end());
+    return scale_sample[scale_sample.size() / 2];
 }
 
 void TLD::drawCandidate(cv::Mat& frame, Candidate candidate) {
@@ -217,7 +212,7 @@ void TLD::drawCandidates(cv::Mat& frame, std::vector<Candidate> candidates) {
 std::vector<cv::Size> TLD::get_scan_position_cnt(cv::Size frame_size, cv::Size box, std::vector<double> scales, std::vector<cv::Size> steps) {
     std::vector<cv::Size> out;
 
-    int scale_id = 0;
+    size_t scale_id = 0;
     for (auto scale: scales) {
         cv::Size grid_size;
         cv::Size scaled_bbox(static_cast<int>(box.width * scale),
@@ -364,6 +359,13 @@ cv::Rect TLD::adjust_rect_to_frame(cv::Rect rect, cv::Size sz) {
     out.width = x2-x1;
     out.height = y2-y1;
     return out;
+}
+
+bool TLD::strobe_is_outside(cv::Rect rect, cv::Size sz) {
+    return (rect.x < 0) || (rect.x >= sz.width) ||
+            (rect.y < 0) || (rect.y >= sz.height) ||
+            (rect.x + rect.width < 0) || (rect.x + rect.width >= sz.width) ||
+            (rect.y + rect.height < 0) || (rect.y + rect.height >= sz.height);
 }
 
 

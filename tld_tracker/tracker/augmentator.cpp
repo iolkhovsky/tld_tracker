@@ -21,7 +21,7 @@ namespace TLD {
     void Augmentator::_make_positive_sample() {
         _sample.clear();
 
-        size_t samples_count = 0;
+        int samples_count = 0;
         for (auto angle: _pars.angles) {
             for (auto scale: _pars.scales) {
                 for (auto transl_x: _pars.translation_x) {
@@ -59,7 +59,7 @@ namespace TLD {
 
         auto scan_positions = get_scan_position_cnt(_frame.size(), {_target.width, _target.height},
                                                     _pars.scales, steps);
-        size_t samples_count = 0;
+        int samples_count = 0;
         for (size_t scale_id = 0; scale_id < _pars.scales.size(); scale_id++) {
             cv::Rect current_rect = {0, 0, static_cast<int>(_target.width * _pars.scales.at(scale_id)),
                                      static_cast<int>(_target.height * _pars.scales.at(scale_id))};
@@ -91,6 +91,9 @@ namespace TLD {
 
     double Augmentator::_update_target_stddev() {
         cv::Mat variance, mean;
+        auto target_outside_frame = strobe_is_outside(_target, {_frame.cols, _frame.rows});
+        if (target_outside_frame)
+            return _target_stddev;
         cv::meanStdDev(_frame(_target), mean, variance);
         _target_stddev = variance.at<double>(0,0);
         return _target_stddev;

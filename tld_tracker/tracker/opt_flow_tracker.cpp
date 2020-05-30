@@ -13,16 +13,21 @@ namespace TLD {
 
     void OptFlowTracker::SetTarget(cv::Rect strobe) {
         _target = strobe;
+        _center.x = strobe.x + 0.5 * strobe.width;
+        _center.y = strobe.y + 0.5 * strobe.height;
+        _size.width = strobe.width;
+        _size.height = strobe.height;
     }
 
     Candidate OptFlowTracker::Track() {
         Candidate out;
         out.src = ProposalSource::tracker;
-        if ((_target.area() == 0) || _prev_frame.empty() || _current_frame.empty())
+        if ((abs(_target.area()) < std::numeric_limits<double>::epsilon()) || _prev_frame.empty() || _current_frame.empty())
             return out;
         cv::Mat mask = cv::Mat(_prev_frame.rows, _prev_frame.cols, CV_8UC1);
         mask.setTo(0);
-        cv::Mat target_subframe = mask(_target);
+        auto target_inside_frame = adjust_rect_to_frame(_target, {mask.cols, mask.rows});
+        cv::Mat target_subframe = mask(target_inside_frame);
         target_subframe.setTo(255);
 
         // find good features on the previous frame
@@ -56,24 +61,21 @@ namespace TLD {
                     continue;
             }
         }
-        cv::Point2d mean_shift, mean_scale;
+        cv::Point2d mean_shift;
+        double mean_scale;
         if (_prev_out_points.size() > 3) {// can trust to results
             mean_shift = get_mean_shift(_prev_out_points, _cur_out_points);
             mean_scale = get_scale(_prev_out_points, _cur_out_points);
 
+            _center += mean_shift;
+            _size *= mean_scale;
+
             out.prob = static_cast<double>(_prev_out_points.size()) / _prev_points.size();
             out.valid = (_prev_out_points.size() >= 3) && (_prev_points.size() > 10);
-            out.strobe.x = _target.x + static_cast<int>(mean_shift.x);
-            out.strobe.y = _target.y + static_cast<int>(mean_shift.y);
-            out.strobe.width = _target.width;
-            out.strobe.height = _target.height;
-
-            int abs_w_half_change = (static_cast<int>(mean_scale.x * _target.width) - _target.width) / 2;
-            int abs_h_half_change = (static_cast<int>(mean_scale.y * _target.height) - _target.height) / 2;
-            out.strobe.x -= abs_w_half_change;
-            out.strobe.width += 2*abs_w_half_change;
-            out.strobe.y -= abs_h_half_change;
-            out.strobe.height += 2*abs_h_half_change;
+            out.strobe.x = static_cast<int>(std::round(_center.x - 0.5*_size.width));
+            out.strobe.y = static_cast<int>(std::round(_center.y - 0.5*_size.height));
+            out.strobe.width = static_cast<int>(std::round(_size.width));
+            out.strobe.height = static_cast<int>(std::round(_size.height));
         } else {
             out.valid = false;
         }

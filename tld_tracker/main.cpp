@@ -13,10 +13,55 @@ int main(int argc, char *argv[])
 #include <iostream>
 #include <tracker/tld_tracker.h>
 #include <profile.h>
+#include <test_runner.h>
 
 using namespace std;
 using namespace TLD;
 using namespace cv;
+
+void TestFeatureExtractor() {
+    cv::Mat color_img = cv::imread("../Lenna.jpg");
+    cv::Mat gray, filtered_frame;
+    cv::cvtColor(color_img, gray, cv::COLOR_BGR2GRAY);
+    cv::blur(gray, filtered_frame, cv::Size(7,7));
+
+    cv::Rect designation;
+    designation.x = 100;
+    designation.y = 150;
+    designation.width = 233;
+    designation.height = 172;
+
+    cv::Size imsz(gray.cols, gray.rows);
+    auto grid = std::make_shared<ScanningGrid>(imsz);
+    TLD::FernFeatureExtractor fext(grid);
+    auto scales = grid->GetScales();
+
+    std::vector<cv::Size> positions_per_scale = grid->GetPositionsCnt();
+    size_t scale_id = 0;
+    for (auto positions: positions_per_scale) {
+        double abs_scale = scales.at(scale_id);
+        for (auto y_i = 0; y_i < positions.height; y_i++) {
+            for (auto x_i = 0; x_i < positions.width; x_i++) {
+
+                cv::Rect strobe;
+                strobe.x = x_i * static_cast<int>(abs_scale * grid->GetOverlap().width);
+                strobe.y = y_i * static_cast<int>(abs_scale * grid->GetOverlap().height);
+                strobe.width = static_cast<int>(abs_scale * designation.width);
+                strobe.height = static_cast<int>(abs_scale * designation.height);
+
+                auto subframe = filtered_frame(strobe);
+
+                auto desc_0 = fext(filtered_frame, {x_i, y_i}, scale_id);
+                auto desc_1 = fext.GetDescriptor(subframe);
+                auto desc_2 =fext.GetDescriptor(gray, strobe);
+
+                ASSERT_EQUAL(desc_0, desc_1)
+                ASSERT_EQUAL(desc_1, desc_2)
+                ASSERT_EQUAL(desc_0, desc_2)
+            }
+        }
+    }
+}
 
 int main(int argc, char** argv) {
 
@@ -24,6 +69,15 @@ int main(int argc, char** argv) {
     for (int i = 0; i < argc; i++) {
         cout << "#" << i << ": " << argv[i] << endl;
     }
+
+    TestRunner tr;
+    RUN_TEST(tr, TestFeatureExtractor);
+
+    cout << "Enter 'y' to run application" << endl;
+    string key;
+    cin >> key;
+    if (key!="y")
+        return 0;
 
     TldTracker tracker = make_tld_tracker();
 
@@ -76,72 +130,3 @@ int main(int argc, char** argv) {
 
     return 0;
 }
-
-
-//int main(int argc, char *argv[])
-//{
-//    vector<FernFeatureExtractor> _feat_extractors;
-//    vector<ScanningGrid> _scanning_grids;
-//    vector<ObjectClassifier<uint16_t, 1024>> _classifiers;
-
-//    cv::Rect _designation(50, 60, 100, 100);
-
-//    _feat_extractors.clear();
-//    _scanning_grids.clear();
-//    _classifiers.clear();
-//    for (auto i = 0; i < 1; i++) {
-//        _scanning_grids.emplace_back(ScanningGrid({640, 480}));
-//        _scanning_grids.back().SetBase({_designation.width, _designation.height}, 0.1, {0.9,1.0,1.1});
-//        _feat_extractors.push_back(_scanning_grids.back());
-//        _classifiers.emplace_back(ObjectClassifier<BinaryDescriptor, BINARY_DESCRIPTOR_CNT>());
-//    }
-
-//    auto i = _classifiers.front().Predict(100);
-//    cout << i << endl;
-//    return 0;
-//}
-
-
-//int main() {
-
-//    TranformPars pars;
-//    pars.angles = {-15, 0, 15};
-//    pars.scales = {0.5, 1.0, 1.5};
-//    pars.translation_x = {0};
-//    pars.translation_y = {0};
-//    pars.overlap = 0.1;
-
-//    cv::Rect roi(200, 200, 150, 150);
-
-//    cv::Mat src = imread("Lenna.jpg");
-//    cvtColor(src, src, cv::COLOR_BGR2GRAY);
-
-//    imshow("src", src);
-
-//    {
-//        LOG_DURATION("Augmentation")
-//        Augmentator augm(src, roi, pars);
-//        int i = 0;
-//        for (auto subframe: augm.SetClass(ObjectClass::Positive)) {
-//            cout << i++ << endl;
-//            stringstream ss("p");
-//            ss << i;
-//            imshow(ss.str().c_str(), subframe);
-//        }
-//        waitKey(0);
-//        i = 0;
-//        for (auto subframe: augm.SetClass(ObjectClass::Negative)) {
-//            cout << i++ << endl;
-//            stringstream ss("n");
-//            ss << i;
-//            imshow(ss.str().c_str(), subframe);
-//            if (i > 100)
-//                break;
-//        }
-//        waitKey(0);
-//    }
-
-//    waitKey(0);
-//    destroyAllWindows();
-//    return 0;
-//}
