@@ -1,8 +1,9 @@
-QT       += core gui
-
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QT -= gui
 
 CONFIG += c++1z
+CONFIG -= app_bundle
+CONFIG ~= s/-O[0123s]//g
+CONFIG += console
 
 # The following define makes your compiler emit warnings if you use
 # any Qt feature that has been marked deprecated (the exact warnings
@@ -17,7 +18,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     main.cpp \
-    mainwindow.cpp \
     tracker/augmentator.cpp \
     tracker/fern.cpp \
     tracker/fern_fext.cpp \
@@ -30,7 +30,6 @@ SOURCES += \
     tracker/tld_utils.cpp
 
 HEADERS += \
-    mainwindow.h \
     profile.h \
     test_runner.h \
     tracker/augmentator.h \
@@ -45,9 +44,6 @@ HEADERS += \
     tracker/scanning_grid.h \
     tracker/tld_tracker.h \
     tracker/tld_utils.h
-
-FORMS += \
-    mainwindow.ui
 
 INCLUDEPATH += /usr/local/include/opencv4
 LIBS += -L/usr/local/lib \

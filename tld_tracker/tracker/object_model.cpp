@@ -26,8 +26,8 @@ namespace TLD {
         aug_pars.translation_y = {static_cast<int>(-0.5*_overlap * _target.height), 0,
                                   static_cast<int>(0.5*_overlap * _target.height)};
         aug_pars.overlap = _overlap;
-        aug_pars.disp_threshold = 0.5;
-        aug_pars.max_sample_length = 100;
+        aug_pars.disp_threshold = 0.1;
+        aug_pars.pos_sample_size_limit = 100;
         Augmentator aug(frame, _target, aug_pars);
 
         for (auto subframe: aug.SetClass(ObjectClass::Positive)) {
@@ -52,14 +52,14 @@ namespace TLD {
         aug_pars.translation_x = {static_cast<int>(-0.5*_overlap * _target.height), 0,
                                   static_cast<int>(0.5*_overlap * _target.height)};
         aug_pars.overlap = _overlap;
-        aug_pars.disp_threshold = 0.5;
-        aug_pars.max_sample_length = 100;
+        aug_pars.disp_threshold = 0.25;
+        aug_pars.pos_sample_size_limit = 100;
         Augmentator aug(frame, candidate.strobe, aug_pars);
 
         for (auto subframe: aug.SetClass(ObjectClass::Positive)) {
             cv::Mat patch = _make_patch(subframe);
             double prob = _predict(patch);
-            if (prob < 0.65)
+            if (prob < 0.5)
                 _add_new_patch(std::move(patch), _positive_sample);
         }
 
@@ -77,12 +77,18 @@ namespace TLD {
         //candidate.strobe = adjusted_rect;
         cv::Mat subframe = src_frame(candidate.strobe);
         auto patch = _make_patch(subframe);
-        return _predict(patch);
+        if (patch.empty())
+            return 0.0;
+        else
+            return _predict(patch);
     }
 
     double ObjectModel::Predict(const cv::Mat& subframe) const {
         auto patch = _make_patch(subframe);
-        return _predict(patch);
+        if (patch.empty())
+            return 0.0;
+        else
+            return _predict(patch);
     }
 
     void ObjectModel::_add_new_patch(cv::Mat&& patch, std::vector<cv::Mat>& sample) {
@@ -97,14 +103,17 @@ namespace TLD {
     }
 
     cv::Mat ObjectModel::_make_patch(const cv::Mat& subframe) const {
-        cv::Mat patch;
-        cv::resize(subframe, patch, _patch_size);
-        return patch;
+        if (!subframe.empty()) {
+            cv::Mat patch;
+            cv::resize(subframe, patch, _patch_size);
+            return patch;
+        } else
+            return {};
     }
 
     double ObjectModel::_similarity_coeff(const cv::Mat& patch_0, cv::Mat& patch_1) const {
         double ncc = images_correlation(patch_0, patch_1);
-        double res = 0.5*(ncc + 1);
+        double res = 0.5 * (ncc + 1);
         return res;
     }
 

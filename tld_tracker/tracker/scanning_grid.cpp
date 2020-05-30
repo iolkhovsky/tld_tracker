@@ -38,6 +38,8 @@ namespace TLD {
         _overlap = overlap;
 
         _zero_shifted.clear();
+        _steps.clear();
+        _bbox_sizes.clear();
 
         if (_base_bbox.area() <= 0)
             throw std::runtime_error(AREA_ERROR);
@@ -50,6 +52,7 @@ namespace TLD {
 
             cv::Size scaled_bbox(static_cast<int>(_base_bbox.width * scale),
                                  static_cast<int>(_base_bbox.height * scale));
+            _bbox_sizes.push_back(scaled_bbox);
             if ((scaled_bbox.width <= _frame_size.width) &&
                     (scaled_bbox.height <= _frame_size.height)) {
                 std::vector<PixelIdPair> scale_points;
@@ -66,28 +69,33 @@ namespace TLD {
                 }
 
                 _zero_shifted.push_back(std::move(scale_points));
+                int step_x = static_cast<int>(scaled_bbox.width * _overlap);
+                int step_y = static_cast<int>(scaled_bbox.height * _overlap);
+                step_x = std::max(4, step_x);
+                step_y = std::max(4, step_y);
+                _steps.push_back({step_x, step_y});
             } else
                 throw std::runtime_error(LARGE_SCALE_ERROR);
         }
     }
 
     std::vector<cv::Size> ScanningGrid::GetPositionsCnt() const {
-        return get_scan_position_cnt(_frame_size, _base_bbox, _scales, _overlap);
+        return get_scan_position_cnt(_frame_size, _base_bbox, _scales, _steps);
     }
 
-    std::vector<PixelIdPair> ScanningGrid::GetPixelPairs(cv::Size position, size_t scale_idx) const {
+    std::vector<PixelIdPair> ScanningGrid::GetPixelPairs(const cv::Mat& frame, cv::Size position, size_t scale_idx) const {
         if (_zero_shifted.size() == 0)
             throw std::runtime_error("Reference grid is ampty!");
         std::vector<PixelIdPair> base = _zero_shifted[scale_idx];
         auto scale = _scales[scale_idx];
         cv::Size scaled_bbox(static_cast<int>(_base_bbox.width * scale),
                              static_cast<int>(_base_bbox.height * scale));
-        int step_x = static_cast<int>(scaled_bbox.width * _overlap);
-        int step_y = static_cast<int>(scaled_bbox.height * _overlap);
+        int step_x = _steps.at(scale_idx).width;
+        int step_y = _steps.at(scale_idx).height;
 
         int x_offset = position.width * step_x;
         int y_offset = position.height * step_y;
-        int linear_offset = x_offset + y_offset * _frame_size.width;
+        int linear_offset = x_offset + y_offset * frame.step[0];
 
         for (auto& [p1_idx, p2_idx]: base) {
             p1_idx += static_cast<size_t>(linear_offset);
@@ -97,15 +105,30 @@ namespace TLD {
         return base;
     }
 
-    std::vector<PixelIdPair> ScanningGrid::GetPixelPairs(cv::Rect bbox) const {
+    std::vector<PixelIdPair> ScanningGrid::GetPixelPairs(const cv::Mat& frame, cv::Rect bbox) const {
         std::vector<PixelIdPair> out;
 
         cv::Size rect_size(bbox.width, bbox.height);
         std::vector<AbsFernPair> local_coords = _fern.Transform(rect_size);
 
         for (auto& [p1, p2]: local_coords) {
-            auto p1_offset = (p1.x + bbox.x) + (p1.y + bbox.y) * _frame_size.width;
-            auto p2_offset = (p2.x + bbox.x) + (p2.y + bbox.y) * _frame_size.width;
+            auto p1_offset = (p1.x + bbox.x) + (p1.y + bbox.y) * frame.step[0];
+            auto p2_offset = (p2.x + bbox.x) + (p2.y + bbox.y) * frame.step[0];
+            out.push_back({p1_offset, p2_offset});
+        }
+
+        return out;
+    }
+
+    std::vector<PixelIdPair> ScanningGrid::GetPixelPairs(const cv::Mat& frame) const {
+        std::vector<PixelIdPair> out;
+
+        cv::Size rect_size(frame.cols, frame.rows);
+        std::vector<AbsFernPair> local_coords = _fern.Transform(rect_size);
+
+        for (auto& [p1, p2]: local_coords) {
+            auto p1_offset = p1.x + p1.y * frame.step[0];
+            auto p2_offset = p2.x + p2.y * frame.step[0];
             out.push_back({p1_offset, p2_offset});
         }
 
@@ -125,6 +148,18 @@ namespace TLD {
 
     cv::Size ScanningGrid::FetFrameSize() const {
         return _frame_size;
+    }
+
+    std::vector<double> ScanningGrid::GetScales() const {
+        return _scales;
+    }
+
+    std::vector<cv::Size> ScanningGrid::GetSteps() const {
+        return _steps;
+    }
+
+    std::vector<cv::Size> ScanningGrid::GetBBoxSizes() const {
+        return _bbox_sizes;
     }
 
 }

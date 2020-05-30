@@ -29,16 +29,16 @@ namespace TLD {
                         _sample.push_back(subframe_linear_transform(_frame, _target, angle, scale,
                                                                     transl_x, transl_y));
                         samples_count++;
-                        if (samples_count >= _pars.max_sample_length)
+                        if ((samples_count >= _pars.pos_sample_size_limit) && (_pars.pos_sample_size_limit > 0))
                             break;
                     }
-                    if (samples_count >= _pars.max_sample_length)
+                    if ((samples_count >= _pars.pos_sample_size_limit) && (_pars.pos_sample_size_limit > 0))
                         break;
                 }
-                if (samples_count >= _pars.max_sample_length)
+                if ((samples_count >= _pars.pos_sample_size_limit) && (_pars.pos_sample_size_limit > 0))
                     break;
             }
-            if (samples_count >= _pars.max_sample_length)
+            if ((samples_count >= _pars.pos_sample_size_limit) && (_pars.pos_sample_size_limit > 0))
                 break;
         }
     }
@@ -46,8 +46,19 @@ namespace TLD {
     void Augmentator::_make_negative_sample() {
         _sample.clear();
         auto target_stddev = _update_target_stddev();
+        std::vector<cv::Size> steps;
+        for (auto scale: _pars.scales) {
+            cv::Size scaled_bbox(static_cast<int>(_target.width * scale),
+                                 static_cast<int>(_target.height * scale));
+            int step_x = static_cast<int>(scaled_bbox.width * _pars.overlap);
+            int step_y = static_cast<int>(scaled_bbox.height * _pars.overlap);
+            step_x = std::max(4, step_x);
+            step_y = std::max(4, step_y);
+            steps.push_back({step_x, step_y});
+        }
+
         auto scan_positions = get_scan_position_cnt(_frame.size(), {_target.width, _target.height},
-                                                    _pars.scales, _pars.overlap);
+                                                    _pars.scales, steps);
         size_t samples_count = 0;
         for (size_t scale_id = 0; scale_id < _pars.scales.size(); scale_id++) {
             cv::Rect current_rect = {0, 0, static_cast<int>(_target.width * _pars.scales.at(scale_id)),
@@ -67,13 +78,13 @@ namespace TLD {
                         _sample.push_back(_frame(current_rect).clone());
                         samples_count++;
                     }
-                    if (samples_count >= _pars.max_sample_length)
+                    if ((samples_count >= _pars.neg_sample_size_limit) && (_pars.neg_sample_size_limit > 0))
                         break;
                 }
-                if (samples_count >= _pars.max_sample_length)
+                if ((samples_count >= _pars.neg_sample_size_limit) && (_pars.neg_sample_size_limit > 0))
                     break;
             }
-            if (samples_count >= _pars.max_sample_length)
+            if ((samples_count >= _pars.neg_sample_size_limit) && (_pars.neg_sample_size_limit > 0))
                 break;
         }
     }

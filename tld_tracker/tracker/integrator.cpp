@@ -172,6 +172,7 @@ namespace TLD {
             _status_message = "One detector cluster";
        } else {
             if (_detector_proposal_clusters.front().aux_prob > 0.95) {
+                _final_proposal.strobe = _detector_proposal_clusters.front().strobe;
                 _final_proposal.src = ProposalSource::detector;
                 _final_proposal.valid = true;
                 _final_proposal.prob = _detector_proposal_clusters.front().aux_prob;

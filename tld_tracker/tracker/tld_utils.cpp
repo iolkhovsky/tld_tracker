@@ -162,6 +162,26 @@ cv::Point2f TLD::get_mean_shift(const std::vector<cv::Point2f> &start, const std
     return acc;
 }
 
+cv::Point2f TLD::get_scale(const std::vector<cv::Point2f> &start, const std::vector<cv::Point2f> &stop) {
+    std::vector<double> dist_prev;
+    std::vector<double> dist_cur;
+
+    for (size_t i = 0; i < start.size(); i++) {
+        for (size_t j = i + 1; j < start.size(); j++) {
+            dist_prev.push_back(cv::norm(start[i] - start[j]));
+            dist_cur.push_back(cv::norm(stop[i] - stop[j]));
+
+        }
+    }
+
+    std::sort(dist_prev.begin(), dist_prev.end());
+    std::sort(dist_cur.begin(), dist_cur.end());
+
+    float scale = static_cast<float>(dist_cur[dist_cur.size() / 2] /
+            dist_prev[dist_prev.size() / 2]);
+    return {scale, scale};
+}
+
 void TLD::drawCandidate(cv::Mat& frame, Candidate candidate) {
     cv::Point2i p1(candidate.strobe.x, candidate.strobe.y);
     cv::Point2i p2(candidate.strobe.x + candidate.strobe.width - 1,
@@ -194,9 +214,10 @@ void TLD::drawCandidates(cv::Mat& frame, std::vector<Candidate> candidates) {
         drawCandidate(frame, item);
 }
 
-std::vector<cv::Size> TLD::get_scan_position_cnt(cv::Size frame_size, cv::Size box, std::vector<double> scales, double overlap) {
+std::vector<cv::Size> TLD::get_scan_position_cnt(cv::Size frame_size, cv::Size box, std::vector<double> scales, std::vector<cv::Size> steps) {
     std::vector<cv::Size> out;
 
+    int scale_id = 0;
     for (auto scale: scales) {
         cv::Size grid_size;
         cv::Size scaled_bbox(static_cast<int>(box.width * scale),
@@ -204,14 +225,15 @@ std::vector<cv::Size> TLD::get_scan_position_cnt(cv::Size frame_size, cv::Size b
 
         int scanning_area_x = frame_size.width - scaled_bbox.width;
         int scanning_area_y = frame_size.height - scaled_bbox.height;
-        int step_x = static_cast<int>(scaled_bbox.width * overlap);
-        int step_y = static_cast<int>(scaled_bbox.height * overlap);
+        int step_x = steps.at(scale_id).width;
+        int step_y = steps.at(scale_id).height;
 
         grid_size.width = 1 + scanning_area_x / step_x;
         grid_size.height = 1 + scanning_area_y / step_y;
 
         out.push_back(grid_size);
-    }
+        scale_id++;
+     }
 
     return out;
 }

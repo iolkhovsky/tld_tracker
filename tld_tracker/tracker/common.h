@@ -5,8 +5,8 @@
 #include <opencv2/opencv.hpp>
 #include <algorithm>
 
-#define BINARY_DESCRIPTOR_WIDTH     (10)
-#define BINARY_DESCRIPTOR_CNT       (1024)
+#define BINARY_DESCRIPTOR_WIDTH     (11)
+#define BINARY_DESCRIPTOR_CNT       (2048)
 #define CLASSIFIERS_CNT             (10)
 
 namespace TLD {

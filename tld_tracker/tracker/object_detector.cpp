@@ -17,9 +17,10 @@ namespace TLD {
         _reset();
 
         TranformPars aug_pars;
-        aug_pars.max_sample_length = 100;
+        aug_pars.pos_sample_size_limit = -1;
+        aug_pars.neg_sample_size_limit = -1;
         aug_pars.disp_threshold = _settings.stddev_relative_threshold;
-        aug_pars.angles = _settings.training_rotation_angles;
+        aug_pars.angles = _settings.init_training_rotation_angles;
         aug_pars.scales = _settings.training_scales;
         aug_pars.overlap = _settings.scanning_overlap;
         aug_pars.translation_x = {static_cast<int>(-0.5 * _settings.scanning_overlap * _designation.width), 0,
@@ -37,7 +38,6 @@ namespace TLD {
         std::vector<cv::Size> positions_per_scale = _scanning_grids.front()->GetPositionsCnt();
         size_t scale_id = 0;
         for (auto positions: positions_per_scale) {
-            double abs_scale = _settings.training_scales.at(scale_id);
             for (auto y_i = 0; y_i < positions.height; y_i++) {
                 for (auto x_i = 0; x_i < positions.width; x_i++) {
                     double ensemble_prob = 0.0;
@@ -50,12 +50,10 @@ namespace TLD {
                         Candidate candidate;
                         candidate.src = ProposalSource::detector;
                         candidate.prob = ensemble_prob;
-                        candidate.strobe.x = x_i * static_cast<int>(abs_scale *
-                                                                    _scanning_grids.front()->GetOverlap().width);
-                        candidate.strobe.y = y_i * static_cast<int>(abs_scale *
-                                                                    _scanning_grids.front()->GetOverlap().height);
-                        candidate.strobe.width = static_cast<int>(abs_scale * _designation.width);
-                        candidate.strobe.height = static_cast<int>(abs_scale * _designation.height);
+                        candidate.strobe.x = x_i * _scanning_grids.front()->GetSteps()[scale_id].width;
+                        candidate.strobe.y = y_i * _scanning_grids.front()->GetSteps()[scale_id].height;
+                        candidate.strobe.width = _scanning_grids.front()->GetBBoxSizes()[scale_id].width;
+                        candidate.strobe.height = _scanning_grids.front()->GetBBoxSizes()[scale_id].height;
                         out.push_back(candidate);
                     }
                 }
@@ -74,7 +72,8 @@ namespace TLD {
         aug_pars.translation_x = {0};
         aug_pars.overlap = _settings.scanning_overlap;
         aug_pars.disp_threshold = _settings.stddev_relative_threshold;
-        aug_pars.max_sample_length = 25;
+        aug_pars.pos_sample_size_limit = -1;
+        aug_pars.neg_sample_size_limit = -1;
         Augmentator aug(*_frame_ptr, prediction.strobe, aug_pars);
         _train(aug);
     }
@@ -89,6 +88,12 @@ namespace TLD {
             _feat_extractors.push_back(_scanning_grids.back());
             _classifiers.emplace_back(ObjectClassifier<BinaryDescriptor, BINARY_DESCRIPTOR_CNT>());
         }
+    }
+
+    void ObjectDetector::UpdateGrid(const Candidate& reference) {
+        _designation = reference.strobe;
+        for (auto& grid: _scanning_grids)
+            grid->SetBase({_designation.width, _designation.height}, _settings.scanning_overlap, _settings.training_scales);
     }
 
     void ObjectDetector::_train(Augmentator aug) {

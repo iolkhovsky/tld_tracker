@@ -16,6 +16,7 @@ namespace TLD {
         ObjectDetector() = default;
         void SetFrame(std::shared_ptr<cv::Mat> img);
         void SetTarget(cv::Rect strobe);
+        void UpdateGrid(const Candidate& reference);
         void Train(Candidate prediction);
         std::vector<Candidate> Detect();
         double _ensamble_prediction(cv::Mat img);
