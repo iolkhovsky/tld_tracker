@@ -19,6 +19,14 @@ int TLD::get_random_int(int maxint) {
     return rand() % (maxint + 1);
 }
 
+cv::Mat TLD::generate_random_image() {
+    cv::Mat out(cv::Size(640, 480), CV_8UC1);
+    for (int j = 0; j < out.rows; j++)
+        for (int i = 0; i < out.cols; i++)
+            out.at<uint8_t>(j, i) = get_random_int(255);
+    return out;
+}
+
 cv::Rect TLD::get_extended_rect_for_rotation(cv::Rect base_rect, double angle_degrees) {
     auto center_x = base_rect.x + 0.5*base_rect.width;
     auto center_y = base_rect.y + 0.5*base_rect.height;

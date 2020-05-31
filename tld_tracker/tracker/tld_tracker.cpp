@@ -32,7 +32,7 @@ TldTracker::TldTracker(Settings settings)
     _processing_en = false;
 }
 
-Candidate TldTracker::SetFrame(const cv::Mat& input_frame) {
+Candidate TldTracker::ProcessFrame(const cv::Mat& input_frame) {
     _src_frame = input_frame.clone();
     cv::blur(_src_frame, _lf_frame, cv::Size(7,7));
 
@@ -58,11 +58,19 @@ Candidate TldTracker::SetFrame(const cv::Mat& input_frame) {
     return _prediction;
 }
 
+Candidate TldTracker::operator<<(const cv::Mat& input_frame) {
+    return ProcessFrame(input_frame);
+}
+
 void TldTracker::StartTracking(const cv::Rect target) {
     _detector.SetTarget(target);
     _tracker.SetTarget(target);
     _model.SetTarget(target);
     _processing_en = true;
+}
+
+void TldTracker::operator <<(cv::Rect target) {
+    StartTracking(target);
 }
 
 void TldTracker::StopTracking() {

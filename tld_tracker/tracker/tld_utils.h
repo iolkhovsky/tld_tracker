@@ -103,4 +103,5 @@ namespace TLD {
     Candidate aggregate_candidates(std::vector<Candidate> sample);
     cv::Rect adjust_rect_to_frame(cv::Rect rect, cv::Size sz);
     bool strobe_is_outside(cv::Rect rect, cv::Size sz);
+    cv::Mat generate_random_image();
 }
