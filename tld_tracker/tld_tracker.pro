@@ -27,7 +27,9 @@ SOURCES += \
     tracker/opt_flow_tracker.cpp \
     tracker/scanning_grid.cpp \
     tracker/tld_tracker.cpp \
-    tracker/tld_utils.cpp
+    tracker/tld_utils.cpp \
+    unit_tests.cpp \
+    cmdline_parser.cpp
 
 HEADERS += \
     profile.h \
@@ -43,7 +45,9 @@ HEADERS += \
     tracker/opt_flow_tracker.h \
     tracker/scanning_grid.h \
     tracker/tld_tracker.h \
-    tracker/tld_utils.h
+    tracker/tld_utils.h \
+    unit_tests.h \
+    cmdline_parser.h
 
 INCLUDEPATH += /usr/local/include/opencv4
 LIBS += -L/usr/local/lib \

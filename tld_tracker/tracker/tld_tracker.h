@@ -24,13 +24,16 @@ namespace TLD {
     class TldTracker {
     public:
         TldTracker(Settings settings);
-        Candidate SetFrame(const cv::Mat& input_frame);
+        Candidate ProcessFrame(const cv::Mat& input_frame);
         void StartTracking(const cv::Rect target);
         void StopTracking();
         void UpdateSettings();
         bool IsProcessing();
         std::tuple<std::vector<Candidate>, std::vector<Candidate>, Candidate> GetProposals();
         TldStatus GetStatus() const;
+        Candidate GerCurrentPrediction() const;
+        Candidate operator<<(const cv::Mat& input_frame);
+        void operator <<(cv::Rect target);
 
     private:
         Settings _settings;
