@@ -27,6 +27,14 @@ cv::Mat TLD::generate_random_image() {
     return out;
 }
 
+cv::Mat TLD::generate_random_image(cv::Size sz) {
+    cv::Mat out(cv::Size(sz.width, sz.height), CV_8UC1);
+    for (int j = 0; j < out.rows; j++)
+        for (int i = 0; i < out.cols; i++)
+            out.at<uint8_t>(j, i) = get_random_int(255);
+    return out;
+}
+
 cv::Rect TLD::get_extended_rect_for_rotation(cv::Rect base_rect, double angle_degrees) {
     auto center_x = base_rect.x + 0.5*base_rect.width;
     auto center_y = base_rect.y + 0.5*base_rect.height;
@@ -148,7 +156,7 @@ double TLD::compute_iou(cv::Rect a, cv::Rect b) {
     int intersection_x_min = std::max(a.x, b.x);
     int intersection_y_min = std::max(a.y, b.y);
     int intersection_x_max = std::min(a.x + a.width, b.x + b.width);
-    int intersection_y_max = std::max(a.y + a.height, b.y + b.height);
+    int intersection_y_max = std::min(a.y + a.height, b.y + b.height);
 
     if ((intersection_x_max <= intersection_x_min) ||
             (intersection_y_max <= intersection_y_min))

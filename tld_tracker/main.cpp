@@ -1,8 +1,9 @@
 #include <iostream>
-#include <tracker/tld_tracker.h>
-#include <profile.h>
-#include <test_runner.h>
+
 #include <cmdline_parser.h>
+#include <tracker/tld_tracker.h>
+#include <unit_tests.h>
+#include <profile.h>
 
 using namespace std;
 using namespace TLD;
@@ -13,49 +14,6 @@ enum class AppModes {
     webcam,
     videofile
 };
-
-void TestFeatureExtractor() {
-    cv::Mat gray = generate_random_image();
-    cv::Mat filtered_frame;
-    cv::blur(gray, filtered_frame, cv::Size(7,7));
-
-    cv::Rect designation;
-    designation.x = 100;
-    designation.y = 150;
-    designation.width = 233;
-    designation.height = 172;
-
-    cv::Size imsz(gray.cols, gray.rows);
-    auto grid = std::make_shared<ScanningGrid>(imsz);
-    TLD::FernFeatureExtractor fext(grid);
-    auto scales = grid->GetScales();
-
-    std::vector<cv::Size> positions_per_scale = grid->GetPositionsCnt();
-    size_t scale_id = 0;
-    for (auto positions: positions_per_scale) {
-        double abs_scale = scales.at(scale_id);
-        for (auto y_i = 0; y_i < positions.height; y_i++) {
-            for (auto x_i = 0; x_i < positions.width; x_i++) {
-
-                cv::Rect strobe;
-                strobe.x = x_i * static_cast<int>(abs_scale * grid->GetOverlap().width);
-                strobe.y = y_i * static_cast<int>(abs_scale * grid->GetOverlap().height);
-                strobe.width = static_cast<int>(abs_scale * designation.width);
-                strobe.height = static_cast<int>(abs_scale * designation.height);
-
-                auto subframe = filtered_frame(strobe);
-
-                auto desc_0 = fext(filtered_frame, {x_i, y_i}, scale_id);
-                auto desc_1 = fext.GetDescriptor(subframe);
-                auto desc_2 =fext.GetDescriptor(gray, strobe);
-
-                ASSERT_EQUAL(desc_0, desc_1)
-                ASSERT_EQUAL(desc_1, desc_2)
-                ASSERT_EQUAL(desc_0, desc_2)
-            }
-        }
-    }
-}
 
 void print_help() {
     using namespace std;
@@ -72,11 +30,6 @@ void print_help() {
     cout << endl;
 }
 
-void run_tests() {
-    TestRunner tr;
-    RUN_TEST(tr, TestFeatureExtractor);
-}
-
 void run_app(VideoCapture& cap, bool debug, bool video=false) {
     if(!cap.isOpened()) {
         cout << "Error while opening cv::VideoCapture" << endl;
@@ -90,7 +43,7 @@ void run_app(VideoCapture& cap, bool debug, bool video=false) {
         frame_count = cap.get(cv::CAP_PROP_FRAME_COUNT);
     size_t frame_id = 0;
     while(cap.isOpened()) {
-        LOG_DURATION("Processing")
+        LOG_DURATION("Iteration")
 
         cap >> src_frame;
         resize(src_frame, frame, Size(640, 480));
@@ -98,7 +51,9 @@ void run_app(VideoCapture& cap, bool debug, bool video=false) {
             break;
         cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
 
+        { LOG_DURATION("Processing")
         result = tracker << gray;
+        }
 
         std::vector<TLD::Candidate> _det_proposals;
         std::vector<TLD::Candidate> _det_clusters;

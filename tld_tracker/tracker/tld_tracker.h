@@ -31,6 +31,7 @@ namespace TLD {
         bool IsProcessing();
         std::tuple<std::vector<Candidate>, std::vector<Candidate>, Candidate> GetProposals();
         TldStatus GetStatus() const;
+        Candidate GerCurrentPrediction() const;
         Candidate operator<<(const cv::Mat& input_frame);
         void operator <<(cv::Rect target);
 

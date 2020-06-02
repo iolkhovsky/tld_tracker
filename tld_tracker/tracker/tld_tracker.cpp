@@ -3,12 +3,17 @@
 std::ostream& operator<<(std::ostream& os, const TLD::TldTracker& tracker) {
     os << std::endl;
     os << "<TLD tracker object>" << std::endl;
-    os << "Processing:\t\t" << (tracker.GetStatus().processing ? "enable" : "disable") << std::endl;
-    os << "Target:\t\t" << (tracker.GetStatus().valid_object ? "valid" : "invalid") << std::endl;
-    os << "Training:\t\t" << (tracker.GetStatus().training ? "enable" : "disable") << std::endl;
-    os << "Relocation:\t\t" << (tracker.GetStatus().tracker_relocation ? "enable" : "disable") << std::endl;
-    os << "Detector proposals:\t\t" << tracker.GetStatus().detector_candidates_cnt << std::endl;
-    os << "Detector clusters:\t\t" << tracker.GetStatus().detector_clusters_cnt << std::endl;
+    os << "Processing:\t" << (tracker.GetStatus().processing ? "enable" : "disable") << std::endl;
+    os << "Target:\t" << (tracker.GetStatus().valid_object ? "valid" : "invalid") << std::endl;
+    os << "Probability:\t" << tracker.GerCurrentPrediction().prob << std::endl;
+    os << "Size (W/H):\t" << tracker.GerCurrentPrediction().strobe.width << "/"
+       << tracker.GerCurrentPrediction().strobe.height<< std::endl;
+    os << "Center (X/Y):\t" << tracker.GerCurrentPrediction().strobe.x << "/"
+       << tracker.GerCurrentPrediction().strobe.y << std::endl;
+    os << "Training status:\t" << (tracker.GetStatus().training ? "enable" : "disable") << std::endl;
+    os << "Relocation flag:\t" << (tracker.GetStatus().tracker_relocation ? "enable" : "disable") << std::endl;
+    os << "Detector proposals:\t" << tracker.GetStatus().detector_candidates_cnt << std::endl;
+    os << "Detector clusters:\t" << tracker.GetStatus().detector_clusters_cnt << std::endl;
     os << "Status:\t\t" << tracker.GetStatus().message << std::endl;
     os << std::endl;
     return os;
@@ -55,6 +60,10 @@ Candidate TldTracker::ProcessFrame(const cv::Mat& input_frame) {
             _tracker.SetTarget(_tracker_proposal.strobe);
     }
     _prediction.src = ProposalSource::final;
+    return _prediction;
+}
+
+Candidate TldTracker::GerCurrentPrediction() const {
     return _prediction;
 }
 
