@@ -9,7 +9,7 @@
 
 
 void TestFernFeatureExtractor() {
-    cv::Mat gray = TLD::generate_random_image();
+    cv::Mat gray = tld::generate_random_image();
     cv::Mat filtered_frame;
     cv::blur(gray, filtered_frame, cv::Size(7,7));
 
@@ -20,8 +20,8 @@ void TestFernFeatureExtractor() {
     designation.height = 172;
 
     cv::Size imsz(gray.cols, gray.rows);
-    auto grid = std::make_shared<TLD::ScanningGrid>(imsz);
-    TLD::FernFeatureExtractor fext(grid);
+    auto grid = std::make_shared<tld::ScanningGrid>(imsz);
+    tld::FernFeatureExtractor fext(grid);
     auto scales = grid->GetScales();
 
     std::vector<cv::Size> positions_per_scale = grid->GetPositionsCnt();
@@ -52,7 +52,7 @@ void TestFernFeatureExtractor() {
 }
 
 void TestObjectClassifier() {
-    TLD::ObjectClassifier<uint8_t, 8> clf;
+    tld::ObjectClassifier<uint8_t, 8> clf;
 
     clf.TrainPositive(2);
     clf.TrainPositive(2);
@@ -83,9 +83,9 @@ void TestObjectClassifier() {
 }
 
 void TestAugmentator() {
-    cv::Mat frame = TLD::generate_random_image({100, 100});
+    cv::Mat frame = tld::generate_random_image({100, 100});
     cv::Rect strobe(10,20,30,40);
-    TLD::TranformPars pars;
+    tld::TranformPars pars;
 
     pars.angles = {-10, 24, 12};
     pars.disp_threshold = 0.1;
@@ -96,25 +96,25 @@ void TestAugmentator() {
     pars.translation_x = {0};
     pars.translation_y = {0};
 
-    TLD::Augmentator aug(frame, strobe, pars);
+    tld::Augmentator aug(frame, strobe, pars);
 
     int cnt = 0;
-    for (auto img: aug.SetClass(TLD::ObjectClass::Positive))
+    for (auto img: aug.SetClass(tld::ObjectClass::Positive))
         cnt++;
     ASSERT_EQUAL(cnt, 6);
 
     pars.pos_sample_size_limit = 4;
-    TLD::Augmentator aug2(frame, strobe, pars);
+    tld::Augmentator aug2(frame, strobe, pars);
 
     cnt = 0;
-    for (auto img: aug2.SetClass(TLD::ObjectClass::Positive))
+    for (auto img: aug2.SetClass(tld::ObjectClass::Positive))
         cnt++;
     ASSERT_EQUAL(cnt, 4);
 }
 
 void TestObjectModel() {
-    TLD::ObjectModel model;
-    cv::Mat frame = TLD::generate_random_image({200, 200});
+    tld::ObjectModel model;
+    cv::Mat frame = tld::generate_random_image({200, 200});
     auto fptr = std::make_shared<cv::Mat>(frame);
     model.SetFrame(fptr);
     cv::Rect ref_strobe(10, 20, 40, 50);
@@ -124,7 +124,7 @@ void TestObjectModel() {
 }
 
 void TestOptFlow() {
-    TLD::OptFlowTracker tracker;
+    tld::OptFlowTracker tracker;
     cv::Mat prev_frame(640, 480, CV_8UC1);
     cv::Mat cur_frame(640, 480, CV_8UC1);
     cv::Size offset(15, 7);
@@ -148,7 +148,7 @@ void TestOptFlow() {
 void TestUtils() {
     cv::Rect a(10,10,10,10);
     cv::Rect b(15,15,10,10);
-    double iou = TLD::compute_iou(a, b);
+    double iou = tld::compute_iou(a, b);
     ASSERT_EQUAL_EPS(iou, 1./7., std::numeric_limits<double>::epsilon());
 }
 

@@ -3,7 +3,7 @@
 #include <tracker/object_model.h>
 #include <tracker/tld_utils.h>
 
-namespace TLD {
+namespace tld {
 
     class Integrator {
     public:

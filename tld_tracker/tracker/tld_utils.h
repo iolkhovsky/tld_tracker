@@ -3,7 +3,7 @@
 #include <iostream>
 #include <tracker/common.h>
 
-namespace TLD {
+namespace tld {
 
     struct TranformPars {
         std::vector<double> scales;
@@ -84,7 +84,7 @@ namespace TLD {
     uint8_t bilinear_interp_for_point(double x, double y, const cv::Mat& frame);
     double degree2rad(double angle);
     double rad2degree(double angle);
-    cv::Mat subframe_linear_transform(const cv::Mat& frame, cv::Rect strobe, double angle,
+    cv::Mat subframe_linear_transform(const cv::Mat& frame, cv::Rect in_strobe, double angle,
                                         double scale, int offset_x, int offset_y);
     double compute_iou(cv::Rect a, cv::Rect b);
     cv::Point2f get_mean_shift(const std::vector<cv::Point2f> &start, const std::vector<cv::Point2f> &stop);
@@ -95,10 +95,11 @@ namespace TLD {
     int get_random_int(int maxint);
     double images_correlation(const cv::Mat &image_1, const cv::Mat &image_2);
     std::vector<Candidate> non_max_suppression(const std::vector<Candidate>& in, double threshold_iou);
-    std::vector<TLD::Candidate> clusterize_candidates(const std::vector<Candidate>& in, double threshold_iou);
+    std::vector<tld::Candidate> clusterize_candidates(const std::vector<Candidate>& in, double threshold_iou);
     Candidate aggregate_candidates(std::vector<Candidate> sample);
     cv::Rect adjust_rect_to_frame(cv::Rect rect, cv::Size sz);
     bool strobe_is_outside(cv::Rect rect, cv::Size sz);
     cv::Mat generate_random_image();
     cv::Mat generate_random_image(cv::Size sz);
+    double get_frame_std_dev(const cv::Mat& frame, cv::Rect roi);
 }

@@ -1,6 +1,6 @@
 #include <tracker/object_detector.h>
 
-namespace TLD {
+namespace tld {
 
     void ObjectDetector::SetFrame(std::shared_ptr<cv::Mat> img) {
         _frame_ptr = img;
@@ -14,6 +14,7 @@ namespace TLD {
 
     void ObjectDetector::SetTarget(cv::Rect strobe) {
         _designation = strobe;
+        _designation_stddev = get_frame_std_dev(*_frame_ptr, _designation);
         _reset();
 
         TranformPars aug_pars;
@@ -54,6 +55,8 @@ namespace TLD {
                         candidate.strobe.y = y_i * _scanning_grids.front()->GetSteps()[scale_id].height;
                         candidate.strobe.width = _scanning_grids.front()->GetBBoxSizes()[scale_id].width;
                         candidate.strobe.height = _scanning_grids.front()->GetBBoxSizes()[scale_id].height;
+                        //double proposal_disp = get_frame_std_dev(*_frame_ptr, candidate.strobe);
+                        //if (proposal_disp > 0.1 * _designation_stddev)
                         out.push_back(candidate);
                     }
                 }
@@ -61,7 +64,11 @@ namespace TLD {
             scale_id++;
         }
 
-        return out;
+        std::sort(out.begin(), out.end(), [] (const Candidate& lhs, const Candidate& rhs) {
+           return lhs.prob > rhs.prob;
+        });
+
+        return {out.begin(), std::min(out.end(), std::next(out.begin(), 16))};
     }
 
     void ObjectDetector::Train(Candidate prediction) {
@@ -69,7 +76,7 @@ namespace TLD {
         aug_pars.angles = _settings.training_rotation_angles;
         aug_pars.scales = _settings.training_scales;
         aug_pars.translation_x = {0};
-        aug_pars.translation_x = {0};
+        aug_pars.translation_y = {0};
         aug_pars.overlap = _settings.scanning_overlap;
         aug_pars.disp_threshold = _settings.stddev_relative_threshold;
         aug_pars.pos_sample_size_limit = -1;

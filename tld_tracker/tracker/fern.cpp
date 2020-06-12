@@ -1,7 +1,7 @@
 #include <tracker/fern.h>
 #include <tracker/tld_utils.h>
 
-namespace TLD {
+namespace tld {
 
     Fern::Fern(size_t pairs_cnt) {
         _pairs.resize(pairs_cnt);

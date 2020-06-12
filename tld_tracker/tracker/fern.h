@@ -4,7 +4,7 @@
 
 #include <tracker/common.h>
 
-namespace TLD {
+namespace tld {
 
     class Fern {
     public:

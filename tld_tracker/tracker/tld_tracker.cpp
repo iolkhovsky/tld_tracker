@@ -1,6 +1,6 @@
 #include <tracker/tld_tracker.h>
 
-std::ostream& operator<<(std::ostream& os, const TLD::TldTracker& tracker) {
+std::ostream& operator<<(std::ostream& os, const tld::TldTracker& tracker) {
     os << std::endl;
     os << "<TLD tracker object>" << std::endl;
     os << "Processing:\t" << (tracker.GetStatus().processing ? "enable" : "disable") << std::endl;
@@ -19,7 +19,7 @@ std::ostream& operator<<(std::ostream& os, const TLD::TldTracker& tracker) {
     return os;
 }
 
-namespace TLD {
+namespace tld {
 
 TldTracker make_tld_tracker() {
     Settings s;
@@ -86,17 +86,15 @@ void TldTracker::StopTracking() {
     _processing_en = false;
 }
 
-
-
 void TldTracker::UpdateSettings() {
 
 }
 
-bool TldTracker::IsProcessing() {
+bool TldTracker::IsProcessing() const {
     return _processing_en;
 }
 
-std::tuple<std::vector<Candidate>, std::vector<Candidate>, Candidate> TldTracker::GetProposals() {
+std::tuple<std::vector<Candidate>, std::vector<Candidate>, Candidate> TldTracker::GetProposals() const {
     return make_tuple(_detector_proposals, _integrator.GetClusters(), _tracker_proposal);
 }
 
@@ -110,6 +108,14 @@ TldStatus TldTracker::GetStatus() const {
     out.detector_candidates_cnt = _detector_proposals.size();
     out.detector_clusters_cnt = _integrator.GetClusters().size();
     return out;
+}
+
+std::vector<cv::Mat> TldTracker::GetModelsPositive() const {
+    return _model.GetPositiveSample();
+}
+
+std::vector<cv::Mat> TldTracker::GetModelsNegative() const {
+    return _model.GetNegativeSample();
 }
 
 }

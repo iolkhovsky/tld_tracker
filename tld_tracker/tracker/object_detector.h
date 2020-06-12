@@ -9,7 +9,7 @@
 #include <tracker/object_classifier.h>
 #include <tracker/augmentator.h>
 
-namespace TLD {
+namespace tld {
 
     class ObjectDetector {
     public:
@@ -28,6 +28,7 @@ namespace TLD {
         std::vector<FernFeatureExtractor> _feat_extractors;
         std::vector<ObjectClassifier<BinaryDescriptor, BINARY_DESCRIPTOR_CNT>> _classifiers;
         cv::Rect _designation;
+        double _designation_stddev;
         DetectorSettings _settings;
 
         void _reset();

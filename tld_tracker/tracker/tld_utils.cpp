@@ -7,19 +7,19 @@ std::ostream& operator<<(std::ostream &os, const cv::Rect& rect) {
     return os;
 }
 
-bool TLD::Candidate::operator<(const Candidate& other) const {
+bool tld::Candidate::operator<(const Candidate& other) const {
     return prob < other.prob;
 }
 
-double TLD::get_normalized_random() {
+double tld::get_normalized_random() {
     return static_cast<double>(rand()) / RAND_MAX;
 }
 
-int TLD::get_random_int(int maxint) {
+int tld::get_random_int(int maxint) {
     return rand() % (maxint + 1);
 }
 
-cv::Mat TLD::generate_random_image() {
+cv::Mat tld::generate_random_image() {
     cv::Mat out(cv::Size(640, 480), CV_8UC1);
     for (int j = 0; j < out.rows; j++)
         for (int i = 0; i < out.cols; i++)
@@ -27,7 +27,7 @@ cv::Mat TLD::generate_random_image() {
     return out;
 }
 
-cv::Mat TLD::generate_random_image(cv::Size sz) {
+cv::Mat tld::generate_random_image(cv::Size sz) {
     cv::Mat out(cv::Size(sz.width, sz.height), CV_8UC1);
     for (int j = 0; j < out.rows; j++)
         for (int i = 0; i < out.cols; i++)
@@ -35,7 +35,7 @@ cv::Mat TLD::generate_random_image(cv::Size sz) {
     return out;
 }
 
-cv::Rect TLD::get_extended_rect_for_rotation(cv::Rect base_rect, double angle_degrees) {
+cv::Rect tld::get_extended_rect_for_rotation(cv::Rect base_rect, double angle_degrees) {
     auto center_x = base_rect.x + 0.5*base_rect.width;
     auto center_y = base_rect.y + 0.5*base_rect.height;
     double angle_rad = abs(angle_degrees * M_PI / 180.0);
@@ -46,7 +46,7 @@ cv::Rect TLD::get_extended_rect_for_rotation(cv::Rect base_rect, double angle_de
     return {x, y, size_x, size_y};
 }
 
-cv::Mat TLD::get_rotated_subframe(cv::Mat frame, cv::Rect subframe_rect, double angle) {
+cv::Mat tld::get_rotated_subframe(cv::Mat frame, cv::Rect subframe_rect, double angle) {
     cv::Mat rotated;
     auto extended_rect = get_extended_rect_for_rotation(subframe_rect, angle);
     cv::Mat src_subframe = frame(extended_rect);
@@ -58,7 +58,7 @@ cv::Mat TLD::get_rotated_subframe(cv::Mat frame, cv::Rect subframe_rect, double 
     return rotated({offset_x, offset_y, extended_rect.width, extended_rect.height});
 }
 
-void TLD::rotate_subframe(cv::Mat& frame, cv::Rect subframe_rect, double angle) {
+void tld::rotate_subframe(cv::Mat& frame, cv::Rect subframe_rect, double angle) {
     cv::Mat rotated;
     auto extended_rect = get_extended_rect_for_rotation(subframe_rect, angle);
     cv::Mat src_subframe = frame(extended_rect);
@@ -75,14 +75,14 @@ void TLD::rotate_subframe(cv::Mat& frame, cv::Rect subframe_rect, double angle) 
     }
 }
 
-uint8_t TLD::bilinear_interp_for_point(double x, double y, const cv::Mat& frame)
+uint8_t tld::bilinear_interp_for_point(double x, double y, const cv::Mat& frame)
 {
     uint8_t* data = frame.data;
     int image_x_size = frame.cols;
     int image_y_size = frame.rows;
 
-    x = std::min(static_cast<double>(image_x_size), std::max(0.0, x));
-    y = std::min(static_cast<double>(image_y_size), std::max(0.0, y));
+    x = std::min(static_cast<double>(image_x_size - 2), std::max(0.0, x));
+    y = std::min(static_cast<double>(image_y_size - 2), std::max(0.0, y));
 
     int x1 = static_cast<int>(x);
     int x2 = static_cast<int>(x1+1);
@@ -102,16 +102,17 @@ uint8_t TLD::bilinear_interp_for_point(double x, double y, const cv::Mat& frame)
     return out;
 }
 
-double TLD::degree2rad(double angle) {
+double tld::degree2rad(double angle) {
     return angle * M_PI / 180.0;
 }
 
-double TLD::rad2degree(double angle) {
+double tld::rad2degree(double angle) {
     return angle * 180.0/ M_PI ;
 }
 
-cv::Mat TLD::subframe_linear_transform(const cv::Mat& frame, cv::Rect strobe, double angle,
+cv::Mat tld::subframe_linear_transform(const cv::Mat& frame, cv::Rect in_strobe, double angle,
                                     double scale, int offset_x, int offset_y) {
+    auto strobe = adjust_rect_to_frame(in_strobe, {frame.cols, frame.rows});
     cv::Mat out = frame(strobe).clone();
     uint8_t* out_data = out.data;
     angle = degree2rad(angle);
@@ -152,7 +153,7 @@ cv::Mat TLD::subframe_linear_transform(const cv::Mat& frame, cv::Rect strobe, do
     return out;
 }
 
-double TLD::compute_iou(cv::Rect a, cv::Rect b) {
+double tld::compute_iou(cv::Rect a, cv::Rect b) {
     int intersection_x_min = std::max(a.x, b.x);
     int intersection_y_min = std::max(a.y, b.y);
     int intersection_x_max = std::min(a.x + a.width, b.x + b.width);
@@ -169,7 +170,7 @@ double TLD::compute_iou(cv::Rect a, cv::Rect b) {
 }
 
 
-cv::Point2f TLD::get_mean_shift(const std::vector<cv::Point2f> &start, const std::vector<cv::Point2f> &stop)
+cv::Point2f tld::get_mean_shift(const std::vector<cv::Point2f> &start, const std::vector<cv::Point2f> &stop)
 {
     cv::Point2f acc(0.0f, 0.0f);
     for(size_t i = 0; i < start.size(); i++)
@@ -178,7 +179,7 @@ cv::Point2f TLD::get_mean_shift(const std::vector<cv::Point2f> &start, const std
     return acc;
 }
 
-double TLD::get_scale(const std::vector<cv::Point2f> &start, const std::vector<cv::Point2f> &stop) {
+double tld::get_scale(const std::vector<cv::Point2f> &start, const std::vector<cv::Point2f> &stop) {
     std::vector<double> scale_sample;
 
     for (size_t i = 0; i < start.size(); i++) {
@@ -193,7 +194,7 @@ double TLD::get_scale(const std::vector<cv::Point2f> &start, const std::vector<c
     return scale_sample[scale_sample.size() / 2];
 }
 
-void TLD::drawCandidate(cv::Mat& frame, Candidate candidate) {
+void tld::drawCandidate(cv::Mat& frame, Candidate candidate) {
     cv::Point2i p1(candidate.strobe.x, candidate.strobe.y);
     cv::Point2i p2(candidate.strobe.x + candidate.strobe.width - 1,
                    candidate.strobe.y + candidate.strobe.height - 1);
@@ -220,12 +221,12 @@ void TLD::drawCandidate(cv::Mat& frame, Candidate candidate) {
     cv::putText(frame, ss.str().c_str(), org, cv::FONT_HERSHEY_SIMPLEX, 0.5, color, 1);
 }
 
-void TLD::drawCandidates(cv::Mat& frame, std::vector<Candidate> candidates) {
+void tld::drawCandidates(cv::Mat& frame, std::vector<Candidate> candidates) {
     for (auto& item: candidates)
         drawCandidate(frame, item);
 }
 
-std::vector<cv::Size> TLD::get_scan_position_cnt(cv::Size frame_size, cv::Size box, std::vector<double> scales, std::vector<cv::Size> steps) {
+std::vector<cv::Size> tld::get_scan_position_cnt(cv::Size frame_size, cv::Size box, std::vector<double> scales, std::vector<cv::Size> steps) {
     std::vector<cv::Size> out;
 
     size_t scale_id = 0;
@@ -249,7 +250,7 @@ std::vector<cv::Size> TLD::get_scan_position_cnt(cv::Size frame_size, cv::Size b
     return out;
 }
 
-double TLD::images_correlation(const cv::Mat &image_1, const cv::Mat &image_2)   {
+double tld::images_correlation(const cv::Mat &image_1, const cv::Mat &image_2)   {
     cv::Mat im_float_1;
     image_1.convertTo(im_float_1, CV_32F);
     cv::Mat im_float_2;
@@ -268,7 +269,7 @@ double TLD::images_correlation(const cv::Mat &image_1, const cv::Mat &image_2)  
 }
 
 
-namespace TLD {
+namespace tld {
     class CandidateComparator {
     public:
         bool operator()(const Candidate& lhs, const Candidate& rhs) {
@@ -277,7 +278,7 @@ namespace TLD {
     };
 }
 
-std::vector<TLD::Candidate> TLD::non_max_suppression(const std::vector<Candidate>& in, double threshold_iou) {
+std::vector<tld::Candidate> tld::non_max_suppression(const std::vector<Candidate>& in, double threshold_iou) {
     if (in.empty())
         return {};
     std::vector<Candidate> out;
@@ -302,7 +303,7 @@ std::vector<TLD::Candidate> TLD::non_max_suppression(const std::vector<Candidate
     return out;
 }
 
-std::vector<TLD::Candidate> TLD::clusterize_candidates(const std::vector<Candidate>& in, double threshold_iou) {
+std::vector<tld::Candidate> tld::clusterize_candidates(const std::vector<Candidate>& in, double threshold_iou) {
     if (in.empty())
         return {};
     std::vector<Candidate> out;
@@ -335,7 +336,7 @@ std::vector<TLD::Candidate> TLD::clusterize_candidates(const std::vector<Candida
     return out;
 }
 
-TLD::Candidate TLD::aggregate_candidates(std::vector<Candidate> sample) {
+tld::Candidate tld::aggregate_candidates(std::vector<Candidate> sample) {
     Candidate out;
     out.prob = 0.0;
     out.aux_prob = 0.0;
@@ -359,7 +360,7 @@ TLD::Candidate TLD::aggregate_candidates(std::vector<Candidate> sample) {
     return out;
 }
 
-cv::Rect TLD::adjust_rect_to_frame(cv::Rect rect, cv::Size sz) {
+cv::Rect tld::adjust_rect_to_frame(cv::Rect rect, cv::Size sz) {
     cv::Rect out;
     int x1, y1, x2, y2;
     x1 = rect.x;
@@ -377,11 +378,19 @@ cv::Rect TLD::adjust_rect_to_frame(cv::Rect rect, cv::Size sz) {
     return out;
 }
 
-bool TLD::strobe_is_outside(cv::Rect rect, cv::Size sz) {
+bool tld::strobe_is_outside(cv::Rect rect, cv::Size sz) {
     return (rect.x < 0) || (rect.x >= sz.width) ||
             (rect.y < 0) || (rect.y >= sz.height) ||
             (rect.x + rect.width < 0) || (rect.x + rect.width >= sz.width) ||
             (rect.y + rect.height < 0) || (rect.y + rect.height >= sz.height);
 }
+
+double tld::get_frame_std_dev(const cv::Mat& frame, cv::Rect roi) {
+    cv::Mat variance, mean;
+    cv::meanStdDev(frame(roi), mean, variance);
+    double stddev = variance.at<double>(0,0);
+    return stddev;
+}
+
 
 

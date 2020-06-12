@@ -1,11 +1,12 @@
 #include <tracker/object_model.h>
 
-namespace TLD {
+namespace tld {
 
     ObjectModel::ObjectModel() :
         _patch_size(15,15),
         _scales({1.0}),
-        _overlap(0.1),
+        _init_overlap(0.5),
+        _overlap(1.0),
         _sample_max_depth(100) {
     }
 
@@ -21,13 +22,14 @@ namespace TLD {
         TranformPars aug_pars;
         aug_pars.angles = {-90, -75, -60, -45, -30, -15, 0, 15, 30, 45, 60, 75, 90};
         aug_pars.scales = _scales;
-        aug_pars.translation_x = {static_cast<int>(-0.5*_overlap * _target.width), 0,
-                                  static_cast<int>(0.5*_overlap * _target.width)};
-        aug_pars.translation_y = {static_cast<int>(-0.5*_overlap * _target.height), 0,
-                                  static_cast<int>(0.5*_overlap * _target.height)};
-        aug_pars.overlap = _overlap;
+        aug_pars.translation_x = {static_cast<int>(-0.5*_init_overlap * _target.width), 0,
+                                  static_cast<int>(0.5*_init_overlap * _target.width)};
+        aug_pars.translation_y = {static_cast<int>(-0.5*_init_overlap * _target.height), 0,
+                                  static_cast<int>(0.5*_init_overlap * _target.height)};
+        aug_pars.overlap = _init_overlap;
         aug_pars.disp_threshold = 0.1;
         aug_pars.pos_sample_size_limit = 100;
+        aug_pars.neg_sample_size_limit = 100;
         Augmentator aug(frame, _target, aug_pars);
 
         for (auto subframe: aug.SetClass(ObjectClass::Positive)) {
@@ -47,10 +49,11 @@ namespace TLD {
         TranformPars aug_pars;
         aug_pars.angles = {-15, 0, 15};
         aug_pars.scales = _scales;
-        aug_pars.translation_x = {static_cast<int>(-0.5*_overlap * _target.width), 0,
-                                  static_cast<int>(0.5*_overlap * _target.width)};
-        aug_pars.translation_x = {static_cast<int>(-0.5*_overlap * _target.height), 0,
-                                  static_cast<int>(0.5*_overlap * _target.height)};
+        aug_pars.translation_x = {static_cast<int>(-0.5*_init_overlap * _target.width), 0,
+                                  static_cast<int>(0.5*_init_overlap * _target.width)};
+        aug_pars.translation_y = {static_cast<int>(-0.5*_init_overlap * _target.height), 0,
+                                  static_cast<int>(0.5*_init_overlap * _target.height)};
+        aug_pars.neg_sample_size_limit = 24;
         aug_pars.overlap = _overlap;
         aug_pars.disp_threshold = 0.25;
         aug_pars.pos_sample_size_limit = 100;
@@ -59,14 +62,14 @@ namespace TLD {
         for (auto subframe: aug.SetClass(ObjectClass::Positive)) {
             cv::Mat patch = _make_patch(subframe);
             double prob = _predict(patch);
-            if (prob < 0.5)
+            if (prob < 0.9)
                 _add_new_patch(std::move(patch), _positive_sample);
         }
 
         for (auto subframe: aug.SetClass(ObjectClass::Negative)) {
             cv::Mat patch = _make_patch(subframe);
             double prob = _predict(patch);
-            if (prob > 0.5)
+            if (prob > 0.1)
                 _add_new_patch(std::move(patch), _negative_sample);
         }
     }
@@ -132,6 +135,14 @@ namespace TLD {
         if (abs(Npm + Ppm)>1e-9)
             out = Npm / (Npm + Ppm);
         return out;
+    }
+
+    std::vector<cv::Mat> ObjectModel::GetPositiveSample() const {
+        return _positive_sample;
+    }
+
+    std::vector<cv::Mat> ObjectModel::GetNegativeSample() const {
+        return _negative_sample;
     }
 
 }

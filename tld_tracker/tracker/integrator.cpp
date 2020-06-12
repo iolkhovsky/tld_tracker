@@ -1,6 +1,6 @@
 #include <tracker/integrator.h>
 
-namespace TLD {
+namespace tld {
 
     Integrator::Integrator(ObjectModel& model)
         : _model(model) {

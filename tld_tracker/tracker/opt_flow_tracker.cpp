@@ -1,6 +1,6 @@
 #include <tracker/opt_flow_tracker.h>
 
-namespace TLD {
+namespace tld {
 
     OptFlowTracker::OptFlowTracker() {
 

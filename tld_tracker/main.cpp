@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 
 #include <cmdline_parser.h>
 #include <tracker/tld_tracker.h>
@@ -6,7 +7,7 @@
 #include <profile.h>
 
 using namespace std;
-using namespace TLD;
+using namespace tld;
 using namespace cv;
 
 enum class AppModes {
@@ -37,6 +38,7 @@ void run_app(VideoCapture& cap, bool debug, bool video=false) {
     cv::Mat src_frame, frame, gray;
     Rect target;
     Candidate result;
+    Size frame_size(640, 480);
     auto tracker = make_tld_tracker();
     size_t frame_count = std::numeric_limits<size_t>::max();
     if (video)
@@ -46,7 +48,7 @@ void run_app(VideoCapture& cap, bool debug, bool video=false) {
         LOG_DURATION("Iteration")
 
         cap >> src_frame;
-        resize(src_frame, frame, Size(640, 480));
+        resize(src_frame, frame, frame_size);
         if (frame.empty())
             break;
         cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
@@ -55,20 +57,43 @@ void run_app(VideoCapture& cap, bool debug, bool video=false) {
         result = tracker << gray;
         }
 
-        std::vector<TLD::Candidate> _det_proposals;
-        std::vector<TLD::Candidate> _det_clusters;
-        TLD::Candidate _track_proposal;
-        std::tie(_det_proposals, _det_clusters, _track_proposal) = tracker.GetProposals();
-
-        auto deb_frame = frame.clone();
-
-        TLD::drawCandidate(frame, result);
-        TLD::drawCandidates(deb_frame, _det_clusters);
-        TLD::drawCandidate(deb_frame, _track_proposal);
-
-        imshow("Stream", frame);
-        if (debug)
+        if (debug) {
+            std::vector<tld::Candidate> _det_proposals;
+            std::vector<tld::Candidate> _det_clusters;
+            tld::Candidate _track_proposal;
+            std::tie(_det_proposals, _det_clusters, _track_proposal) = tracker.GetProposals();
+            auto deb_frame = frame.clone();
+            tld::drawCandidates(deb_frame, _det_clusters);
+            tld::drawCandidate(deb_frame, _track_proposal);
+            auto psample = tracker.GetModelsPositive();
+            auto nsample = tracker.GetModelsNegative();
+            for (auto i = 0; i < min(5, static_cast<int>(psample.size())); i++) {
+                Mat p = psample[i];
+                Mat out(p.cols, p.rows, CV_8UC1);
+                Mat out_color(p.cols, p.rows, CV_8UC3);
+                normalize(p, out, 0, 255, NORM_MINMAX, CV_8UC1);
+                cvtColor(out, out_color, cv::COLOR_GRAY2BGR);
+                cv::Mat out_resized(45,45,CV_8UC3);
+                resize(out_color, out_resized, Size(45, 45));
+                Rect position(i*45, 0, 45, 45);
+                out_resized.copyTo(deb_frame(position));
+            }
+            for (auto i = 0; i < min(5, static_cast<int>(nsample.size())); i++) {
+                Mat n = nsample[i];
+                Mat out(n.cols, n.rows, CV_8UC1);
+                Mat out_color(n.cols, n.rows, CV_8UC3);
+                normalize(n, out, 0, 255, NORM_MINMAX, CV_8UC1);
+                cvtColor(out, out_color, cv::COLOR_GRAY2BGR);
+                cv::Mat out_resized(45,45,CV_8UC3);
+                resize(out_color, out_resized, Size(45, 45));
+                Rect position(i*45, deb_frame.rows - 45, 45, 45);
+                out_resized.copyTo(deb_frame(position));
+            }
             imshow("Debug", deb_frame);
+        }
+
+        tld::drawCandidate(frame, result);
+        imshow("Stream", frame);
 
         auto in_symbol = waitKey(1);
         if  (in_symbol == 'q')

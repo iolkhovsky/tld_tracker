@@ -3,7 +3,7 @@
 #include <tracker/tld_utils.h>
 #include <tracker/augmentator.h>
 
-namespace TLD {
+namespace tld {
 
     class ObjectModel {
     public:
@@ -13,11 +13,14 @@ namespace TLD {
         void Train(Candidate candidate);
         double Predict(Candidate candidate) const;
         double Predict(const cv::Mat& subframe) const;
+        std::vector<cv::Mat> GetPositiveSample() const;
+        std::vector<cv::Mat> GetNegativeSample() const;
     private:
         cv::Size _patch_size;
         std::shared_ptr<cv::Mat> _frame;
         cv::Rect _target;
         std::vector<double> _scales;
+        double _init_overlap;
         double _overlap;
 
         size_t _sample_max_depth;

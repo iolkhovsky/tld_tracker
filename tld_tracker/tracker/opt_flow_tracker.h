@@ -3,7 +3,7 @@
 #include <opencv2/opencv.hpp>
 #include <tracker/tld_utils.h>
 
-namespace TLD {
+namespace tld {
 
     class OptFlowTracker {
     public:
