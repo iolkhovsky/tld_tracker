@@ -39,7 +39,7 @@ TldTracker::TldTracker(Settings settings)
 
 Candidate TldTracker::ProcessFrame(const cv::Mat& input_frame) {
     _src_frame = input_frame.clone();
-    cv::blur(_src_frame, _lf_frame, cv::Size(14,14));
+    cv::blur(_src_frame, _lf_frame, cv::Size(7,7));
 
     _detector.SetFrame(std::make_shared<cv::Mat>(_lf_frame));
     _model.SetFrame(std::make_shared<cv::Mat>(_src_frame));
