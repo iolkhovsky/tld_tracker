@@ -1,6 +1,6 @@
 #include <tracker/fern_fext.h>
 
-namespace TLD {
+namespace tld {
 
     FernFeatureExtractor::FernFeatureExtractor(std::shared_ptr<ScanningGrid> grid)
         : _grid(grid) {

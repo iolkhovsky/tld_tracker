@@ -1,6 +1,6 @@
 #include <tracker/augmentator.h>
 
-namespace TLD {
+namespace tld {
 
     Augmentator::Augmentator(const cv::Mat& frame, cv::Rect target, TranformPars pars) :
         _frame(frame), _target(target), _pars(pars) {
@@ -63,17 +63,15 @@ namespace TLD {
         for (size_t scale_id = 0; scale_id < _pars.scales.size(); scale_id++) {
             cv::Rect current_rect = {0, 0, static_cast<int>(_target.width * _pars.scales.at(scale_id)),
                                      static_cast<int>(_target.height * _pars.scales.at(scale_id))};
-            int step_x = static_cast<int>(_pars.overlap * current_rect.width);
-            int step_y = static_cast<int>(_pars.overlap * current_rect.height);
+            int step_x = steps.at(scale_id).width;
+            int step_y = steps.at(scale_id).height;
             cv::Size positions = scan_positions.at(scale_id);
-            for (auto x_org = 0; x_org < positions.width; x_org += step_x) {
-                for (auto y_org = 0; y_org < positions.height; y_org += step_y) {
-                    current_rect.x = x_org;
-                    current_rect.y = y_org;
+            for (auto x_org = 0; x_org < positions.width; x_org ++) {
+                for (auto y_org = 0; y_org < positions.height; y_org ++) {
+                    current_rect.x = x_org * step_x;
+                    current_rect.y = y_org * step_y;
                     double iou = compute_iou(current_rect, _target);
-                    cv::Mat variance, mean;
-                    cv::meanStdDev(_frame(current_rect), mean, variance);
-                    double stddev = variance.at<double>(0,0);
+                    double stddev = get_frame_std_dev(_frame, current_rect);
                     if ((iou < 0.1) && (stddev > target_stddev * _pars.disp_threshold)) {
                         _sample.push_back(_frame(current_rect).clone());
                         samples_count++;
@@ -94,8 +92,7 @@ namespace TLD {
         auto target_outside_frame = strobe_is_outside(_target, {_frame.cols, _frame.rows});
         if (target_outside_frame)
             return _target_stddev;
-        cv::meanStdDev(_frame(_target), mean, variance);
-        _target_stddev = variance.at<double>(0,0);
+        _target_stddev =  get_frame_std_dev(_frame, _target);
         return _target_stddev;
     }
 

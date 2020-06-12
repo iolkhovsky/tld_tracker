@@ -4,7 +4,7 @@
 #include <tracker/fern.h>
 #include <tracker/tld_utils.h>
 
-namespace TLD {
+namespace tld {
 
     class ScanningGrid {
     public:

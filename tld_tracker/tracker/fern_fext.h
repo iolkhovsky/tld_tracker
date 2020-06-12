@@ -4,7 +4,7 @@
 
 #include <tracker/scanning_grid.h>
 
-namespace TLD {
+namespace tld {
 
     class FernFeatureExtractor {
     public:

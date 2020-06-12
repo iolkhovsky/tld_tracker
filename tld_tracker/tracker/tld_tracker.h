@@ -9,7 +9,7 @@
 #include <tracker/object_model.h>
 #include <tracker/integrator.h>
 
-namespace TLD {
+namespace tld {
 
     struct TldStatus {
         bool processing;
@@ -28,12 +28,14 @@ namespace TLD {
         void StartTracking(const cv::Rect target);
         void StopTracking();
         void UpdateSettings();
-        bool IsProcessing();
-        std::tuple<std::vector<Candidate>, std::vector<Candidate>, Candidate> GetProposals();
+        bool IsProcessing() const;
+        std::tuple<std::vector<Candidate>, std::vector<Candidate>, Candidate> GetProposals() const;
         TldStatus GetStatus() const;
         Candidate GerCurrentPrediction() const;
         Candidate operator<<(const cv::Mat& input_frame);
         void operator <<(cv::Rect target);
+        std::vector<cv::Mat> GetModelsPositive() const;
+        std::vector<cv::Mat> GetModelsNegative() const;
 
     private:
         Settings _settings;
@@ -60,4 +62,4 @@ namespace TLD {
 
 }
 
-std::ostream& operator<<(std::ostream &os, const TLD::TldTracker& tracker);
+std::ostream& operator<<(std::ostream &os, const tld::TldTracker& tracker);

@@ -2,7 +2,7 @@
 
 #include <vector>
 
-namespace TLD {
+namespace tld {
 
     template<typename descriptor, size_t descriptors_cnt>
     class ObjectClassifier {
@@ -44,6 +44,7 @@ namespace TLD {
     }
     template<typename descriptor, size_t descriptors_cnt>
     size_t ObjectClassifier<descriptor, descriptors_cnt>::TrainPositive(descriptor x) {
+        _updated[x] = false;
         size_t res = ++_positive_distribution[x];
         _positive_distr_max = std::max(_positive_distr_max, res);
         return res;
@@ -51,6 +52,7 @@ namespace TLD {
 
     template<typename descriptor, size_t descriptors_cnt>
     size_t ObjectClassifier<descriptor, descriptors_cnt>::TrainNegative(descriptor x) {
+        _updated[x] = false;
         return ++_negative_distribution[x];
     }
 

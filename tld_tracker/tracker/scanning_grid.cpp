@@ -7,7 +7,7 @@ namespace  {
     constexpr const char* LARGE_SCALE_ERROR = "ScanningGrid scale larger than image!";
 }
 
-namespace TLD {
+namespace tld {
 
     ScanningGrid::ScanningGrid(cv::Size frame_size) :
         _frame_size(frame_size),
