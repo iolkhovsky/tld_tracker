@@ -81,8 +81,8 @@ uint8_t tld::bilinear_interp_for_point(double x, double y, const cv::Mat& frame)
     int image_x_size = frame.cols;
     int image_y_size = frame.rows;
 
-    x = std::min(static_cast<double>(image_x_size), std::max(0.0, x));
-    y = std::min(static_cast<double>(image_y_size), std::max(0.0, y));
+    x = std::min(static_cast<double>(image_x_size - 2), std::max(0.0, x));
+    y = std::min(static_cast<double>(image_y_size - 2), std::max(0.0, y));
 
     int x1 = static_cast<int>(x);
     int x2 = static_cast<int>(x1+1);
@@ -110,8 +110,9 @@ double tld::rad2degree(double angle) {
     return angle * 180.0/ M_PI ;
 }
 
-cv::Mat tld::subframe_linear_transform(const cv::Mat& frame, cv::Rect strobe, double angle,
+cv::Mat tld::subframe_linear_transform(const cv::Mat& frame, cv::Rect in_strobe, double angle,
                                     double scale, int offset_x, int offset_y) {
+    auto strobe = adjust_rect_to_frame(in_strobe, {frame.cols, frame.rows});
     cv::Mat out = frame(strobe).clone();
     uint8_t* out_data = out.data;
     angle = degree2rad(angle);

@@ -84,7 +84,7 @@ namespace tld {
     uint8_t bilinear_interp_for_point(double x, double y, const cv::Mat& frame);
     double degree2rad(double angle);
     double rad2degree(double angle);
-    cv::Mat subframe_linear_transform(const cv::Mat& frame, cv::Rect strobe, double angle,
+    cv::Mat subframe_linear_transform(const cv::Mat& frame, cv::Rect in_strobe, double angle,
                                         double scale, int offset_x, int offset_y);
     double compute_iou(cv::Rect a, cv::Rect b);
     cv::Point2f get_mean_shift(const std::vector<cv::Point2f> &start, const std::vector<cv::Point2f> &stop);
