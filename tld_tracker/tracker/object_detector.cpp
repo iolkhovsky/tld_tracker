@@ -76,7 +76,7 @@ namespace tld {
         aug_pars.angles = _settings.training_rotation_angles;
         aug_pars.scales = _settings.training_scales;
         aug_pars.translation_x = {0};
-        aug_pars.translation_x = {0};
+        aug_pars.translation_y = {0};
         aug_pars.overlap = _settings.scanning_overlap;
         aug_pars.disp_threshold = _settings.stddev_relative_threshold;
         aug_pars.pos_sample_size_limit = -1;
