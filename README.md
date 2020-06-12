@@ -25,5 +25,6 @@ Example of application launch with web-camera video stream:
 	./tld_demo_app --webcam --camid=DEVICE_ID
 Example of application launch with video stream read from videofile:
 	./tld_demo_app --video --videopath=ABS_PATH_TO_VIDEO
+![Alt text](attachments/tracker_works.png?raw=true "Tracking")
 
 After application will start press 't' key to designate target. Set designation bounding box by mouse and press space key to start tracking.
