@@ -272,7 +272,7 @@ double tld::images_correlation(const cv::Mat &image_1, const cv::Mat &image_2)  
 namespace tld {
     class CandidateComparator {
     public:
-        bool operator()(const Candidate& lhs, const Candidate& rhs) {
+        bool operator()(const Candidate& lhs, const Candidate& rhs) const {
             return lhs.prob > rhs.prob;
         }
     };
