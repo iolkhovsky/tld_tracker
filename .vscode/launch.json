@@ -1,0 +1,36 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug configuration (gdb)",
+            "preLaunchTask": "Build (Debug)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bazel-out/k8-dbg/bin/demo_app/demo",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/bazel-out/k8-dbg/bin/demo_app/demo.runfiles/__main__/",
+            "environment": [],
+            "externalConsole": false,
+            "linux": {
+                "type": "cppdbg",
+                "MIMode": "gdb",
+                "program": "${workspaceFolder}/bazel-out/k8-dbg/bin/demo_app/demo",
+                "cwd": "${workspaceFolder}/bazel-out/k8-dbg/bin/demo_app/demo.runfiles/__main__/",
+                "sourceFileMap": {
+                    "/proc/self/cwd/": "${workspaceFolder}",
+                  },
+              },
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        }
+    ]
+}
