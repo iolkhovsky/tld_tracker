@@ -3,11 +3,11 @@
 #include <vector>
 #include <memory>
 
-#include <tracker/common.h>
-#include <tracker/tld_utils.h>
-#include <tracker/fern_fext.h>
-#include <tracker/object_classifier.h>
-#include <tracker/augmentator.h>
+#include "common.h"
+#include "tld_utils.h"
+#include "fern_fext.h"
+#include "object_classifier.h"
+#include "augmentator.h"
 
 namespace tld {
 

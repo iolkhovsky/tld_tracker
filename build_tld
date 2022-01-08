@@ -1,4 +1,4 @@
 #!/bin/bash
-cmake .
-make
-
+bazel build //third_party:opencv
+bazel build //tld:tld
+bazel build //demo_app:demo

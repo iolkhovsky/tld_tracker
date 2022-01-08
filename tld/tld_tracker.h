@@ -3,11 +3,11 @@
 #include <tuple>
 #include <vector>
 
-#include <tracker/common.h>
-#include <tracker/opt_flow_tracker.h>
-#include <tracker/object_detector.h>
-#include <tracker/object_model.h>
-#include <tracker/integrator.h>
+#include "common.h"
+#include "opt_flow_tracker.h"
+#include "object_detector.h"
+#include "object_model.h"
+#include "integrator.h"
 
 namespace tld {
 

@@ -1,4 +1,4 @@
-#include <tracker/scanning_grid.h>
+#include "scanning_grid.h"
 
 namespace  {
     constexpr const char* AREA_ERROR = "ScanningGrid has received zero area base bbox!";

@@ -1,0 +1,35 @@
+cc_library(
+    name = "tld",
+    srcs = [
+        "augmentator.cpp",
+        "augmentator.h",
+        "common.h",
+        "fern_fext.cpp",
+        "fern_fext.h",
+        "fern.cpp",
+        "fern.h",
+        "integrator.cpp",
+        "integrator.h",
+        "object_classifier.h",
+        "object_detector.cpp",
+        "object_detector.h",
+        "object_model.cpp",
+        "object_model.h",
+        "opt_flow_tracker.cpp",
+        "opt_flow_tracker.h",
+        "scanning_grid.cpp",
+        "scanning_grid.h",
+        "tld_tracker.cpp",
+        "tld_utils.cpp",
+        "tld_utils.h",
+    ],
+    hdrs = [
+        "tld_tracker.h",
+    ],
+    visibility = [
+        "//visibility:public",
+    ],
+    deps = [
+        "@third_party//:opencv",
+    ],
+)

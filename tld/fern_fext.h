@@ -1,8 +1,8 @@
 #pragma once
 
-#include <tracker/common.h>
+#include "common.h"
 
-#include <tracker/scanning_grid.h>
+#include "scanning_grid.h"
 
 namespace tld {
 
